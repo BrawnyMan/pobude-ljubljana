@@ -1,6 +1,6 @@
-import PobudaForm from "../components/PobudaForm";
-import PobudeTabela from "../components/PobudeTabela";
-import Zemljevid from "../components/Zemljevid";
+import PobudeTabela from "../components/PobudeTabela"
+import PobudaForm from "../components/PobudaForm"
+import Zemljevid from "../components/Zemljevid"
 
 export default function Dashboard() {
     return (
