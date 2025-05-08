@@ -3,7 +3,7 @@ import { useState } from "react";
 
 const API_URL = getApiUrl();
 
-export default function InitiativeForm() {
+export default function InitiativeForm({ onSubmitted }: { onSubmitted: () => void }) {
     const [location, setLocation] = useState("");
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
@@ -36,6 +36,8 @@ export default function InitiativeForm() {
             setDescription("");
             setEmail("");
             setCaptcha("");
+
+            if (onSubmitted) onSubmitted();
         } catch (err) {
             alert("Napaka: preverite podatke in poskusite znova.");
             console.error(err);
