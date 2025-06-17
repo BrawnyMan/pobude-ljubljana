@@ -1,7 +1,7 @@
-import Header from "./components/Header"
-import Footer from "./components/Footer"
-import Router from "./routes/Router"
-import { BrowserRouter } from "react-router-dom"
+import { BrowserRouter } from 'react-router-dom';
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import Router from "./routes/Router";
 
 function App() {
     return (
@@ -12,7 +12,7 @@ function App() {
             </main>
             <Footer />
         </BrowserRouter>
-    )
+    );
 }
 
-export default App
+export default App;

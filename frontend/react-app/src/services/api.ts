@@ -8,9 +8,11 @@ export interface Pobuda {
   latitude: number;
   longitude: number;
   email: string;
-  image_path: string | null;
+  image_path?: string;
   status: string;
   created_at: string;
+  response?: string;
+  responded_at?: string;
 }
 
 export const createPobuda = async (formData: FormData): Promise<Pobuda> => {

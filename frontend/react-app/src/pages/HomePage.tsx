@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import MapView from '../components/MapView';
 import InitiativeForm from '../components/InitiativeForm';
 
@@ -15,6 +15,10 @@ const HomePage = () => {
         });
     };
 
+    const handleClearLocation = () => {
+        setSelectedLocation(null);
+    };
+
     return (
         <div className="container-fluid">
             <div className="row">
@@ -28,7 +32,10 @@ const HomePage = () => {
                 
                 {/* Form Section - Right side */}
                 <div className="col-lg-4 py-3">
-                    <InitiativeForm selectedLocation={selectedLocation} />
+                    <InitiativeForm 
+                        selectedLocation={selectedLocation} 
+                        onClearLocation={handleClearLocation}
+                    />
                 </div>
             </div>
         </div>

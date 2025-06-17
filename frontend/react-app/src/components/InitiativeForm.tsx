@@ -1,7 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { createPobuda } from '../services/api';
 import { useNavigate } from 'react-router-dom';
-import MapView from './MapView';
+
+// Popular Ljubljana streets
+const LJUBLJANA_STREETS = [
+    'Prešernova cesta',
+    'Slovenska cesta',
+    'Miklošičeva ulica',
+    'Trubarjeva ulica',
+    'Čopova ulica',
+    'Wolfova ulica',
+    'Kongresni trg',
+    'Mestni trg',
+    'Stritarjeva ulica',
+    'Gosposka ulica',
+    'Cankarjeva cesta',
+    'Dunajska cesta',
+    'Celovška cesta',
+    'Vegova ulica',
+    'Kardeljeva ploščad',
+    'Tivolska cesta',
+    'Masarykova cesta',
+    'Bleiweisova cesta',
+    'Šmartinska cesta',
+    'Litijska cesta'
+];
 
 interface FormData {
   location: string;
@@ -11,6 +34,7 @@ interface FormData {
   description: string;
   image: File | null;
   email: string;
+  streetNumber: string;
 }
 
 interface InitiativeFormProps {
@@ -18,9 +42,10 @@ interface InitiativeFormProps {
     latitude: number;
     longitude: number;
   } | null;
+  onClearLocation?: () => void;
 }
 
-const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation }) => {
+const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onClearLocation }) => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +57,8 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation }) => 
     title: '',
     description: '',
     image: null,
-    email: ''
+    email: '',
+    streetNumber: ''
   });
 
   // Update form data when location is selected on the map
@@ -55,7 +81,14 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation }) => 
       const submitData = new FormData();
       submitData.append('title', formData.title);
       submitData.append('description', formData.description);
-      submitData.append('location', formData.location);
+      
+      // Set location based on whether coordinates are selected
+      if (selectedLocation) {
+        submitData.append('location', 'Selected location on map');
+      } else {
+        submitData.append('location', `${formData.location} ${formData.streetNumber}, Ljubljana`);
+      }
+      
       submitData.append('latitude', formData.latitude.toString());
       submitData.append('longitude', formData.longitude.toString());
       submitData.append('email', formData.email);
@@ -79,23 +112,50 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation }) => 
           <div className="mb-4">
             <h4 className="mb-3">Step 1: Location Details</h4>
             <div className="mb-3">
-              <label htmlFor="location" className="form-label">Location Description:</label>
-              <input
-                type="text"
-                id="location"
-                className="form-control mb-3"
-                value={formData.location}
-                onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                placeholder="Enter location description"
-                required
-              />
+              <label htmlFor="location" className="form-label">Location:</label>
+              <div className="d-flex gap-2">
+                <select
+                  id="location"
+                  className="form-select"
+                  value={formData.location}
+                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                  required={!selectedLocation}
+                >
+                  <option value="">Select a street</option>
+                  {LJUBLJANA_STREETS.map((street) => (
+                    <option key={street} value={street}>
+                      {street}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  className="form-control"
+                  style={{ width: '100px' }}
+                  placeholder="No."
+                  value={formData.streetNumber}
+                  onChange={(e) => setFormData(prev => ({ ...prev, streetNumber: e.target.value }))}
+                  required={!selectedLocation}
+                />
+              </div>
             </div>
-            <div className="text-muted mb-3">
-              Selected coordinates: {formData.latitude.toFixed(6)}, {formData.longitude.toFixed(6)}
-            </div>
+            {selectedLocation && (
+              <div className="mb-3">
+                <div className="text-muted mb-2">
+                  Selected coordinates: {formData.latitude.toFixed(6)}, {formData.longitude.toFixed(6)}
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-outline-danger btn-sm"
+                  onClick={onClearLocation}
+                >
+                  Remove map selection
+                </button>
+              </div>
+            )}
             {!selectedLocation && (
               <div className="alert alert-info">
-                Please click on the map to select a location
+                Please click on the map to select a location or use the street input above
               </div>
             )}
           </div>
@@ -123,7 +183,6 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation }) => 
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                 required
-                rows={4}
               />
             </div>
             <div className="mb-3">
@@ -163,7 +222,13 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation }) => 
   const isStepValid = () => {
     switch (step) {
       case 1:
-        return formData.location !== '' && selectedLocation !== null;
+        if (selectedLocation) {
+          // If coordinates are selected, we don't need street/number
+          return true;
+        } else {
+          // If no coordinates, we need both street and number
+          return formData.location !== '' && formData.streetNumber !== '';
+        }
       case 2:
         return formData.title.length >= 3 && formData.description.length >= 10;
       case 3:

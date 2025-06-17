@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
-import { Icon, DivIcon, LatLngBounds, LatLng } from 'leaflet';
+import { Icon, LatLngBounds, LatLng } from 'leaflet';
 import { getPobude, Pobuda } from '../services/api';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+import L from 'leaflet';
 
 // Fix for default marker icon
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-import L from 'leaflet';
 
 // Ljubljana bounds
 const LJUBLJANA_BOUNDS = new LatLngBounds(
@@ -40,18 +40,29 @@ const pinIcon = new Icon({
     shadowSize: [41, 41]
 });
 
-// Circle icon for existing initiatives
-const circleIcon = new DivIcon({
-    className: 'custom-div-icon',
-    html: '<div style="background-color: #007bff; width: 15px; height: 15px; border-radius: 50%; border: 2px solid white;"></div>',
-    iconSize: [15, 15],
-    iconAnchor: [7, 7],
-    popupAnchor: [1, -7]
+// Custom marker icons
+const answeredIcon = new L.Icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+});
+
+const pendingIcon = new L.Icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
 });
 
 interface MapViewProps {
+    isSelectionMode: boolean;
     onLocationSelect?: (lat: number, lng: number) => void;
-    isSelectionMode?: boolean;
+    focusLocation?: [number, number] | null;
 }
 
 // MapBoundsHandler component to restrict map movement
@@ -72,78 +83,55 @@ const MapBoundsHandler: React.FC = () => {
     return null;
 };
 
-// MapClickHandler component to handle click events
-const MapClickHandler: React.FC<{ onLocationSelect: (lat: number, lng: number) => void }> = ({ onLocationSelect }) => {
-    useMapEvents({
-        click: (e) => {
-            // Only allow selection within Ljubljana bounds
-            if (LJUBLJANA_BOUNDS.contains(e.latlng)) {
-                onLocationSelect(e.latlng.lat, e.latlng.lng);
-            }
-        },
-    });
+// Component to handle map focus
+const MapFocus = ({ focusLocation }: { focusLocation: [number, number] | null }) => {
+    const map = useMap();
+
+    useEffect(() => {
+        if (focusLocation) {
+            map.setView(focusLocation, 16);
+        }
+    }, [focusLocation, map]);
+
     return null;
 };
 
-const MapView: React.FC<MapViewProps> = ({ onLocationSelect, isSelectionMode = false }) => {
-    const [initiatives, setInitiatives] = useState<Pobuda[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+const MapView: React.FC<MapViewProps> = ({ isSelectionMode, onLocationSelect, focusLocation }) => {
+    const [pobude, setPobude] = useState<Pobuda[]>([]);
     const [selectedLocation, setSelectedLocation] = useState<[number, number] | null>(null);
 
     useEffect(() => {
-        const fetchInitiatives = async () => {
-            try {
-                const data = await getPobude();
-                const validInitiatives = data.filter(
-                    initiative => 
-                        typeof initiative.latitude === 'number' && 
-                        typeof initiative.longitude === 'number' &&
-                        !isNaN(initiative.latitude) && 
-                        !isNaN(initiative.longitude)
-                );
-                setInitiatives(validInitiatives);
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'Failed to fetch initiatives');
-            } finally {
-                setIsLoading(false);
-            }
-        };
+        if (!isSelectionMode) {
+            fetchPobude();
+        }
+    }, [isSelectionMode]);
 
-        fetchInitiatives();
-    }, []);
-
-    const handleLocationSelect = (lat: number, lng: number) => {
-        if (isSelectionMode && onLocationSelect) {
-            setSelectedLocation([lat, lng]);
-            onLocationSelect(lat, lng);
+    const fetchPobude = async () => {
+        try {
+            const data = await getPobude();
+            setPobude(data);
+        } catch (error) {
+            console.error('Error fetching pobude:', error);
         }
     };
 
-    if (isLoading) {
-        return (
-            <div className="h-100 d-flex justify-content-center align-items-center">
-                <div className="spinner-border" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                </div>
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="h-100 d-flex justify-content-center align-items-center">
-                <div className="alert alert-danger">
-                    {error}
-                </div>
-            </div>
-        );
-    }
+    const MapEvents = () => {
+        useMapEvents({
+            click: (e) => {
+                if (isSelectionMode && onLocationSelect) {
+                    const { lat, lng } = e.latlng;
+                    setSelectedLocation([lat, lng]);
+                    onLocationSelect(lat, lng);
+                }
+            },
+        });
+        return null;
+    };
 
     return (
         <div style={{ height: '100%', width: '100%' }}>
             <MapContainer
-                center={LJUBLJANA_CENTER}
+                center={[46.0569, 14.5058]} // Ljubljana coordinates
                 zoom={13}
                 style={{ height: '100%', width: '100%' }}
                 scrollWheelZoom={true}
@@ -157,7 +145,9 @@ const MapView: React.FC<MapViewProps> = ({ onLocationSelect, isSelectionMode = f
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
-                
+                <MapEvents />
+                <MapFocus focusLocation={focusLocation || null} />
+
                 {/* Existing initiatives */}
                 <MarkerClusterGroup
                     chunkedLoading
@@ -165,31 +155,31 @@ const MapView: React.FC<MapViewProps> = ({ onLocationSelect, isSelectionMode = f
                     spiderfyOnMaxZoom={true}
                     showCoverageOnHover={false}
                 >
-                    {initiatives.map((initiative) => {
+                    {pobude.map((pobuda) => {
                         if (
-                            typeof initiative.latitude !== 'number' || 
-                            typeof initiative.longitude !== 'number' ||
-                            isNaN(initiative.latitude) || 
-                            isNaN(initiative.longitude)
+                            typeof pobuda.latitude !== 'number' || 
+                            typeof pobuda.longitude !== 'number' ||
+                            isNaN(pobuda.latitude) || 
+                            isNaN(pobuda.longitude)
                         ) {
                             return null;
                         }
 
                         return (
                             <Marker
-                                key={initiative.id}
-                                position={[initiative.latitude, initiative.longitude]}
-                                icon={circleIcon}
+                                key={pobuda.id}
+                                position={[pobuda.latitude, pobuda.longitude]}
+                                icon={pobuda.status === 'odgovorjeno' ? answeredIcon : pendingIcon}
                             >
                                 <Popup>
                                     <div className="popup-content">
-                                        <h5>{initiative.title}</h5>
+                                        <h5>{pobuda.title}</h5>
                                         <p className="text-muted mb-2">
-                                            <small>{initiative.location}</small>
+                                            <small>{pobuda.location}</small>
                                         </p>
-                                        <p className="mb-2">{initiative.description.substring(0, 100)}...</p>
-                                        <span className={`badge bg-${initiative.status === 'v obravnavi' ? 'warning' : 'success'}`}>
-                                            {initiative.status}
+                                        <p className="mb-2">{pobuda.description.substring(0, 100)}...</p>
+                                        <span className={`badge bg-${pobuda.status === 'v obravnavi' ? 'warning' : 'success'}`}>
+                                            {pobuda.status}
                                         </span>
                                     </div>
                                 </Popup>
@@ -198,23 +188,18 @@ const MapView: React.FC<MapViewProps> = ({ onLocationSelect, isSelectionMode = f
                     })}
                 </MarkerClusterGroup>
 
-                {/* Selection mode handler and marker */}
-                {isSelectionMode && onLocationSelect && (
-                    <>
-                        <MapClickHandler onLocationSelect={handleLocationSelect} />
-                        {selectedLocation && (
-                            <Marker
-                                position={selectedLocation}
-                                icon={pinIcon}
-                            >
-                                <Popup>
-                                    Selected Location<br />
-                                    Lat: {selectedLocation[0].toFixed(6)}<br />
-                                    Lng: {selectedLocation[1].toFixed(6)}
-                                </Popup>
-                            </Marker>
-                        )}
-                    </>
+                {/* Show selected location marker in selection mode */}
+                {isSelectionMode && selectedLocation && (
+                    <Marker
+                        position={selectedLocation}
+                        icon={pinIcon}
+                    >
+                        <Popup>
+                            Selected Location<br />
+                            Lat: {selectedLocation[0].toFixed(6)}<br />
+                            Lng: {selectedLocation[1].toFixed(6)}
+                        </Popup>
+                    </Marker>
                 )}
             </MapContainer>
         </div>
