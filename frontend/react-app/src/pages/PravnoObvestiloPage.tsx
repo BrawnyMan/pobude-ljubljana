@@ -6,8 +6,10 @@ const PravnoObvestiloPage: React.FC = () => (
   <div className="container my-5">
     <div className="card shadow-sm">
       <div className="card-body" style={{ whiteSpace: 'pre-line', fontSize: '1.1rem', lineHeight: 1.7 }}>
-        <h2 className="mb-4">Pravno obvestilo</h2>
-        {pravnoText}
+        <h1 className="mb-4">Pravno obvestilo</h1>
+        <div role="main" aria-label="Legal notice content">
+          {pravnoText}
+        </div>
       </div>
     </div>
   </div>

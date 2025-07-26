@@ -26,7 +26,7 @@ const AllInitiativesPage: React.FC = () => {
     return (
       <div className="container py-4">
         <div className="text-center">
-          <div className="spinner-border" role="status">
+          <div className="spinner-border" role="status" aria-label="Loading initiatives">
             <span className="visually-hidden">Loading...</span>
           </div>
         </div>
@@ -37,7 +37,7 @@ const AllInitiativesPage: React.FC = () => {
   if (error) {
     return (
       <div className="container py-4">
-        <div className="alert alert-danger">
+        <div className="alert alert-danger" role="alert">
           {error}
         </div>
       </div>
@@ -46,25 +46,25 @@ const AllInitiativesPage: React.FC = () => {
 
   return (
     <div className="container py-4">
-      <h2 className="mb-4">All Initiatives</h2>
+      <h1 className="mb-4">All Initiatives</h1>
       
-      <div className="row g-4">
+      <div className="row g-4" role="list" aria-label="List of initiatives">
         {initiatives.map(initiative => (
-          <div key={initiative.id} className="col-md-6 col-lg-4">
-            <div className="card h-100">
+          <div key={initiative.id} className="col-md-6 col-lg-4" role="listitem">
+            <article className="card h-100">
               {initiative.image_path && (
                 <img 
                   src={`http://localhost:8000${initiative.image_path}`}
                   className="card-img-top"
-                  alt={initiative.title}
+                  alt={`Image for initiative: ${initiative.title}`}
                   style={{ height: '200px', objectFit: 'cover' }}
                 />
               )}
               <div className="card-body">
-                <h5 className="card-title">{initiative.title}</h5>
+                <h2 className="card-title h5">{initiative.title}</h2>
                 <p className="card-text text-muted mb-2">
                   <small>
-                    <i className="bi bi-geo-alt"></i> {initiative.location}
+                    <i className="bi bi-geo-alt" aria-hidden="true"></i> {initiative.location}
                   </small>
                 </p>
                 <p className="card-text">
@@ -73,7 +73,10 @@ const AllInitiativesPage: React.FC = () => {
                     : initiative.description}
                 </p>
                 <div className="d-flex justify-content-between align-items-center">
-                  <span className={`badge bg-${initiative.status === 'v obravnavi' ? 'warning' : 'success'}`}>
+                  <span 
+                    className={`badge bg-${initiative.status === 'v obravnavi' ? 'warning' : 'success'}`}
+                    aria-label={`Status: ${initiative.status}`}
+                  >
                     {initiative.status}
                   </span>
                   <small className="text-muted">
@@ -81,7 +84,7 @@ const AllInitiativesPage: React.FC = () => {
                   </small>
                 </div>
               </div>
-            </div>
+            </article>
           </div>
         ))}
       </div>

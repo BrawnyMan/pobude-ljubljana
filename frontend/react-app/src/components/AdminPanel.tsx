@@ -30,15 +30,30 @@ const AdminPanel = () => {
 
     return (
         <div className="container">
-            {initiatives.map(i => (
-                <div key={i.id} className="card mb-3 p-3">
-                    <InitiativeCard initiative={i} />
-                    <div className="mt-2">
-                        <button className="btn btn-success me-2" onClick={() => handleApprove(i.id)}>Odobri</button>
-                        <button className="btn btn-danger" onClick={() => handleReject(i.id)}>Zavrni</button>
+            <h1 className="visually-hidden">Admin Panel</h1>
+            <div role="list" aria-label="List of initiatives for admin review">
+                {initiatives.map(i => (
+                    <div key={i.id} className="card mb-3 p-3" role="listitem">
+                        <InitiativeCard initiative={i} />
+                        <div className="mt-2">
+                            <button 
+                                className="btn btn-success me-2" 
+                                onClick={() => handleApprove(i.id)}
+                                aria-label={`Approve initiative: ${i.title}`}
+                            >
+                                Odobri
+                            </button>
+                            <button 
+                                className="btn btn-danger" 
+                                onClick={() => handleReject(i.id)}
+                                aria-label={`Reject initiative: ${i.title}`}
+                            >
+                                Zavrni
+                            </button>
+                        </div>
                     </div>
-                </div>
-            ))}
+                ))}
+            </div>
         </div>
     )
 }

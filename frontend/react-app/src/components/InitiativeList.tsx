@@ -8,9 +8,13 @@ interface Props {
 const InitiativeList: React.FC<Props> = ({ initiatives }) => {
     return (
         <div className="container">
-            {initiatives.map(i => (
-                <InitiativeCard key={i.id} initiative={i} />
-            ))}
+            <div role="list" aria-label="List of initiatives">
+                {initiatives.map(i => (
+                    <div key={i.id} role="listitem">
+                        <InitiativeCard initiative={i} />
+                    </div>
+                ))}
+            </div>
         </div>
     )
 }

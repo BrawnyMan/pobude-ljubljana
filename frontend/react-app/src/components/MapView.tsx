@@ -129,7 +129,11 @@ const MapView: React.FC<MapViewProps> = ({ isSelectionMode, onLocationSelect, fo
     };
 
     return (
-        <div style={{ height: '100%', width: '100%' }}>
+        <div 
+            style={{ height: '100%', width: '100%' }}
+            role="application"
+            aria-label={isSelectionMode ? "Interactive map for selecting location" : "Map showing all initiatives"}
+        >
             <MapContainer
                 center={[46.0569, 14.5058]} // Ljubljana coordinates
                 zoom={13}
@@ -173,12 +177,15 @@ const MapView: React.FC<MapViewProps> = ({ isSelectionMode, onLocationSelect, fo
                             >
                                 <Popup>
                                     <div className="popup-content">
-                                        <h5>{pobuda.title}</h5>
+                                        <h3 className="h6">{pobuda.title}</h3>
                                         <p className="text-muted mb-2">
                                             <small>{pobuda.location}</small>
                                         </p>
                                         <p className="mb-2">{pobuda.description.substring(0, 100)}...</p>
-                                        <span className={`badge bg-${pobuda.status === 'v obravnavi' ? 'warning' : 'success'}`}>
+                                        <span 
+                                            className={`badge bg-${pobuda.status === 'v obravnavi' ? 'warning' : 'success'}`}
+                                            aria-label={`Status: ${pobuda.status}`}
+                                        >
                                             {pobuda.status}
                                         </span>
                                     </div>
@@ -195,9 +202,11 @@ const MapView: React.FC<MapViewProps> = ({ isSelectionMode, onLocationSelect, fo
                         icon={pinIcon}
                     >
                         <Popup>
-                            Selected Location<br />
-                            Lat: {selectedLocation[0].toFixed(6)}<br />
-                            Lng: {selectedLocation[1].toFixed(6)}
+                            <div>
+                                <strong>Selected Location</strong><br />
+                                Lat: {selectedLocation[0].toFixed(6)}<br />
+                                Lng: {selectedLocation[1].toFixed(6)}
+                            </div>
                         </Popup>
                     </Marker>
                 )}

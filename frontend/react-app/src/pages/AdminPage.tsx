@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { getPobude, Pobuda } from '../services/api';
 import { Line } from 'react-chartjs-2';
 import {
@@ -39,10 +39,23 @@ const AdminPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [aiSorted, setAiSorted] = useState<any[] | null>(null);
+  // Add this state to store random importance values for each pobuda
+  const [importanceMap, setImportanceMap] = useState<{ [id: number]: number }>({});
 
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    // When pobude changes, generate a random importance for each pobuda
+    if (pobude.length > 0) {
+      const newMap: { [id: number]: number } = {};
+      pobude.forEach(p => {
+        newMap[p.id] = Math.floor(Math.random() * 101); // 0-100
+      });
+      setImportanceMap(newMap);
+    }
+  }, [pobude]);
 
   const fetchData = async () => {
     try {
@@ -201,6 +214,7 @@ const AdminPage = () => {
                   <th>Location</th>
                   <th>Status</th>
                   <th>Created</th>
+                  <th>Importance</th> {/* New column */}
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -215,6 +229,51 @@ const AdminPage = () => {
                       </span>
                     </td>
                     <td>{new Date(pobuda.created_at).toLocaleDateString()}</td>
+                    <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                      {/* Importance circle with improved color contrast */}
+                      {(() => {
+                        const value = importanceMap[pobuda.id] ?? '?';
+                        let bgColor = '#0056b3'; // darker blue for better contrast
+                        let textColor = '#ffffff'; // white text
+                        let ariaLabel = `Importance score: ${value} out of 100`;
+                        
+                        if (typeof value === 'number') {
+                          if (value < 50) {
+                            bgColor = '#b02a37'; // darker red for better contrast
+                            ariaLabel = `Low importance score: ${value} out of 100`;
+                          } else if (value > 80) {
+                            bgColor = '#198754'; // darker green for better contrast
+                            ariaLabel = `High importance score: ${value} out of 100`;
+                          } else {
+                            ariaLabel = `Medium importance score: ${value} out of 100`;
+                          }
+                        }
+                        
+                        return (
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: 44,
+                              height: 44,
+                              borderRadius: '50%',
+                              background: bgColor,
+                              color: textColor,
+                              fontWeight: 'bold',
+                              fontSize: 18,
+                              boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+                              border: '2px solid #fff',
+                            }}
+                            title="Simulated importance (ChatGPT)"
+                            aria-label={ariaLabel}
+                            role="img"
+                          >
+                            {value}
+                          </span>
+                        );
+                      })()}
+                    </td>
                     <td>
                       <button
                         className="btn btn-primary btn-sm"

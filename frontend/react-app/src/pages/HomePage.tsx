@@ -32,6 +32,7 @@ const HomePage = () => {
                 
                 {/* Form Section - Right side */}
                 <div className="col-lg-4 py-3">
+                    <h1 className="visually-hidden">Submit New Initiative</h1>
                     <InitiativeForm 
                         selectedLocation={selectedLocation} 
                         onClearLocation={handleClearLocation}

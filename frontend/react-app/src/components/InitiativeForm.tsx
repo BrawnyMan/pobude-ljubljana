@@ -110,16 +110,19 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
       case 1:
         return (
           <div className="mb-4">
-            <h4 className="mb-3">Step 1: Location Details</h4>
+            <h2 className="mb-3">Step 1: Location Details</h2>
             <div className="mb-3">
               <label htmlFor="location" className="form-label">Location:</label>
               <div className="d-flex gap-2">
                 <select
                   id="location"
+                  name="location"
                   className="form-select"
                   value={formData.location}
                   onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
                   required={!selectedLocation}
+                  aria-describedby={!selectedLocation ? "location-help" : undefined}
+                  disabled={isSubmitting}
                 >
                   <option value="">Select a street</option>
                   {LJUBLJANA_STREETS.map((street) => (
@@ -130,14 +133,23 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
                 </select>
                 <input
                   type="text"
+                  id="streetNumber"
+                  name="streetNumber"
                   className="form-control"
                   style={{ width: '100px' }}
                   placeholder="No."
                   value={formData.streetNumber}
                   onChange={(e) => setFormData(prev => ({ ...prev, streetNumber: e.target.value }))}
                   required={!selectedLocation}
+                  aria-describedby={!selectedLocation ? "location-help" : undefined}
+                  disabled={isSubmitting}
                 />
               </div>
+              {!selectedLocation && (
+                <div id="location-help" className="form-text">
+                  Please select a street and enter the house number, or click on the map to select a location.
+                </div>
+              )}
             </div>
             {selectedLocation && (
               <div className="mb-3">
@@ -148,13 +160,15 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
                   type="button"
                   className="btn btn-outline-danger btn-sm"
                   onClick={onClearLocation}
+                  disabled={isSubmitting}
+                  aria-label="Remove map selection"
                 >
                   Remove map selection
                 </button>
               </div>
             )}
             {!selectedLocation && (
-              <div className="alert alert-info">
+              <div className="alert alert-info" role="alert">
                 Please click on the map to select a location or use the street input above
               </div>
             )}
@@ -163,54 +177,83 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
       case 2:
         return (
           <div className="mb-4">
-            <h4 className="mb-3">Step 2: Initiative Details</h4>
+            <h2 className="mb-3">Step 2: Initiative Details</h2>
             <div className="mb-3">
               <label htmlFor="title" className="form-label">Title:</label>
               <input
                 type="text"
                 id="title"
+                name="title"
                 className="form-control"
                 value={formData.title}
                 onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                 required
+                minLength={3}
+                maxLength={100}
+                aria-describedby="title-help"
+                disabled={isSubmitting}
               />
+              <div id="title-help" className="form-text">
+                Enter a descriptive title for your initiative (3-100 characters)
+              </div>
             </div>
             <div className="mb-3">
               <label htmlFor="description" className="form-label">Description:</label>
               <textarea
                 id="description"
+                name="description"
                 className="form-control"
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                 required
-              />
+                minLength={10}
+                maxLength={500}
+                rows={4}
+                aria-describedby="description-help"
+                disabled={isSubmitting}
+              ></textarea>
+              <div id="description-help" className="form-text">
+                Provide a detailed description of your initiative (10-500 characters)
+              </div>
             </div>
             <div className="mb-3">
               <label htmlFor="image" className="form-label">Image (optional):</label>
               <input
                 type="file"
                 id="image"
+                name="image"
                 className="form-control"
                 onChange={(e) => setFormData(prev => ({ ...prev, image: e.target.files?.[0] || null }))}
                 accept="image/*"
+                aria-describedby="image-help"
+                disabled={isSubmitting}
               />
+              <div id="image-help" className="form-text">
+                Upload an image to support your initiative (optional)
+              </div>
             </div>
           </div>
         );
       case 3:
         return (
           <div className="mb-4">
-            <h4 className="mb-3">Step 3: Contact Information</h4>
+            <h2 className="mb-3">Step 3: Contact Information</h2>
             <div className="mb-3">
               <label htmlFor="email" className="form-label">Email:</label>
               <input
                 type="email"
                 id="email"
+                name="email"
                 className="form-control"
                 value={formData.email}
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                 required
+                aria-describedby="email-help"
+                disabled={isSubmitting}
               />
+              <div id="email-help" className="form-text">
+                We'll use this email to contact you about your initiative
+              </div>
             </div>
           </div>
         );
@@ -240,11 +283,11 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
 
   return (
     <div className="container-fluid h-100 py-4">
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} role="form" aria-label="Initiative submission form">
         {renderStep()}
         
         {error && (
-          <div className="alert alert-danger mb-3">
+          <div className="alert alert-danger mb-3" role="alert" aria-live="polite">
             {error}
           </div>
         )}
@@ -255,6 +298,8 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
               type="button"
               className="btn btn-secondary"
               onClick={() => setStep(prev => prev - 1)}
+              disabled={isSubmitting}
+              aria-label="Go to previous step"
             >
               Previous
             </button>
@@ -265,7 +310,8 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
               type="button"
               className="btn btn-primary ms-auto"
               onClick={() => setStep(prev => prev + 1)}
-              disabled={!isStepValid()}
+              disabled={!isStepValid() || isSubmitting}
+              aria-label="Go to next step"
             >
               Next
             </button>
@@ -274,11 +320,18 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
               type="submit"
               className="btn btn-success ms-auto"
               disabled={!isStepValid() || isSubmitting}
+              aria-describedby={isSubmitting ? "submitting-status" : undefined}
             >
               {isSubmitting ? 'Submitting...' : 'Submit Initiative'}
             </button>
           )}
         </div>
+        
+        {isSubmitting && (
+          <div id="submitting-status" className="visually-hidden" aria-live="polite">
+            Submitting your initiative, please wait...
+          </div>
+        )}
       </form>
     </div>
   );
