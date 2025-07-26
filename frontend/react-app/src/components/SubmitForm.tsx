@@ -4,9 +4,24 @@ const SubmitForm = () => {
     const [title, setTitle] = useState("")
     const [description, setDescription] = useState("")
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        console.log("Oddana pobuda:", { title, description })
+
+        const input = { title, description }
+
+        try {
+            const res = await fetch("http://localhost:8000/analyze", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(input)
+            })
+
+            const data = await res.json()
+            alert("AI predlog:\n" + data.analysis)
+        } catch (err) {
+            console.error("Napaka pri AI analizi", err)
+        }
+
         setTitle("")
         setDescription("")
     }

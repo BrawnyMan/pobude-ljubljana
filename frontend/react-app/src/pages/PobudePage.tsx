@@ -91,7 +91,7 @@ const PobudePage = () => {
         <div className="container-fluid d-flex flex-column flex-grow-1" style={{ minHeight: 0 }}>
             <div className="row flex-grow-1 min-h-0" style={{ minHeight: 0 }}>
                 {/* Map Section - Left side */}
-                <div className="col-lg-8 p-0 d-flex flex-grow-1" style={{ minHeight: '60vh' }}>
+                <div className="col-lg-8 p-0 d-flex flex-grow-1" style={{ minHeight: '84vh' }}>
                     <MapView isSelectionMode={false} focusLocation={focusLocation} />
                 </div>
                 

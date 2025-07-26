@@ -38,6 +38,7 @@ const AdminPage = () => {
   const [response, setResponse] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [aiSorted, setAiSorted] = useState<any[] | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -79,6 +80,20 @@ const AdminPage = () => {
       setResponse('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit response');
+    }
+  };
+
+  const handleAiSort = async () => {
+    try {
+      const res = await fetch('http://localhost:8000/admin/ai-prioritize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(pobude)
+      });
+      const data = await res.json();
+      setAiSorted(data);
+    } catch (err) {
+      alert('Napaka pri AI analizi pobud');
     }
   };
 
@@ -215,6 +230,29 @@ const AdminPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Add this button above the list/table of initiatives */}
+      <button className="btn btn-info mb-3" onClick={handleAiSort}>
+        AI Sort by Priority
+      </button>
+
+      {/* AI Prioritized Initiatives */}
+      {aiSorted && (
+        <div className="mb-4">
+          <h4>AI Prioritized Initiatives</h4>
+          <ul className="list-group">
+            {aiSorted.map((p) => (
+              <li key={p.id} className="list-group-item d-flex justify-content-between align-items-center">
+                <span>
+                  <strong>{p.title}</strong>
+                  <span className="text-muted ms-2">({p.location})</span>
+                </span>
+                <span className="badge bg-primary rounded-pill">{p.priority_score}/100</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Response Modal */}
       {selectedPobuda && (
