@@ -6,6 +6,7 @@ import AdminPage from '../pages/AdminPage';
 import LoginPage from '../pages/LoginPage';
 import PravnoObvestiloPage from '../pages/PravnoObvestiloPage';
 import PomocPage from '../pages/PomocPage';
+import StatisticsPage from '../pages/StatisticsPage';
 
 const RequireAuth = ({ children }: { children: React.ReactNode }) => {
     const isLoggedIn = localStorage.getItem('admin_token') === 'dummy-admin-token';
@@ -19,6 +20,7 @@ const Router = () => {
             <Route path="/pobude" element={<PobudePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/admin" element={<RequireAuth><AdminPage /></RequireAuth>} />
+            <Route path="/statistics" element={<StatisticsPage />} />
             <Route path="/pravno-obvestilo" element={<PravnoObvestiloPage />} />
             <Route path="/pomoc" element={<PomocPage />} />
         </Routes>

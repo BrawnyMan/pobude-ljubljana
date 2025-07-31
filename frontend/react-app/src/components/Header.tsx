@@ -33,6 +33,9 @@ const Header: React.FC = () => {
                             <Link className="nav-link text-white" to="/pobude" role="menuitem">Pobude</Link>
                         </li>
                         <li className="nav-item" role="none">
+                            <Link className="nav-link text-white" to="/statistics" role="menuitem">Statistics</Link>
+                        </li>
+                        <li className="nav-item" role="none">
                             <a 
                                 className="nav-link text-white" 
                                 href="/admin" 

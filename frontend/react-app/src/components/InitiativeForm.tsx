@@ -35,6 +35,7 @@ interface FormData {
   image: File | null;
   email: string;
   streetNumber: string;
+  category: string;
 }
 
 interface InitiativeFormProps {
@@ -58,7 +59,8 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
     description: '',
     image: null,
     email: '',
-    streetNumber: ''
+    streetNumber: '',
+    category: ''
   });
 
   // Update form data when location is selected on the map
@@ -92,6 +94,7 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
       submitData.append('latitude', formData.latitude.toString());
       submitData.append('longitude', formData.longitude.toString());
       submitData.append('email', formData.email);
+      submitData.append('category', formData.category || 'other');
       if (formData.image) {
         submitData.append('image', formData.image);
       }
@@ -198,6 +201,32 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
               </div>
             </div>
             <div className="mb-3">
+              <label htmlFor="category" className="form-label">Category:</label>
+              <select
+                id="category"
+                name="category"
+                className="form-select"
+                value={formData.category}
+                onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                required
+                aria-describedby="category-help"
+                disabled={isSubmitting}
+              >
+                <option value="">Select a category</option>
+                <option value="infrastructure">Infrastructure</option>
+                <option value="transport">Transport</option>
+                <option value="environment">Environment</option>
+                <option value="culture">Culture</option>
+                <option value="education">Education</option>
+                <option value="health">Health</option>
+                <option value="safety">Safety</option>
+                <option value="other">Other</option>
+              </select>
+              <div id="category-help" className="form-text">
+                Choose the category that best describes your initiative
+              </div>
+            </div>
+            <div className="mb-3">
               <label htmlFor="description" className="form-label">Description:</label>
               <textarea
                 id="description"
@@ -273,7 +302,7 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
           return formData.location !== '' && formData.streetNumber !== '';
         }
       case 2:
-        return formData.title.length >= 3 && formData.description.length >= 10;
+        return formData.title.length >= 3 && formData.description.length >= 10 && formData.category !== '';
       case 3:
         return formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
       default:
