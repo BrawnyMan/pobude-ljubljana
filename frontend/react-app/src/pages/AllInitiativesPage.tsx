@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { getPobude, Pobuda } from '../services/api';
 import { Link } from 'react-router-dom';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 const AllInitiativesPage: React.FC = () => {
   const [initiatives, setInitiatives] = useState<Pobuda[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -54,7 +56,7 @@ const AllInitiativesPage: React.FC = () => {
             <article className="card h-100">
               {initiative.image_path && (
                 <img 
-                  src={`http://localhost:8000${initiative.image_path}`}
+                  src={`${API_BASE_URL}${initiative.image_path}`}
                   className="card-img-top"
                   alt={`Image for initiative: ${initiative.title}`}
                   style={{ height: '200px', objectFit: 'cover' }}

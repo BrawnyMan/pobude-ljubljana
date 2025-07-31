@@ -1,5 +1,7 @@
 import { useState } from "react"
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 const SubmitForm = () => {
     const [title, setTitle] = useState("")
     const [description, setDescription] = useState("")
@@ -14,7 +16,7 @@ const SubmitForm = () => {
         const input = { title, description }
 
         try {
-            const res = await fetch("http://localhost:8000/analyze", {
+            const res = await fetch(`${API_BASE_URL}/analyze`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(input)

@@ -31,6 +31,8 @@ interface Statistics {
   response_stats: Array<{ date: string; count: number }>;
 }
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 const AdminPage = () => {
   const [pobude, setPobude] = useState<Pobuda[]>([]);
   const [statistics, setStatistics] = useState<Statistics | null>(null);
@@ -62,7 +64,7 @@ const AdminPage = () => {
       setIsLoading(true);
       const [pobudeData, statsData] = await Promise.all([
         getPobude(),
-        fetch('http://localhost:8000/api/admin/statistics').then(res => res.json())
+        fetch(`${API_BASE_URL}/admin/statistics`).then(res => res.json())
       ]);
       setPobude(pobudeData);
       setStatistics(statsData);
@@ -75,7 +77,7 @@ const AdminPage = () => {
 
   const handleRespond = async (pobudaId: number) => {
     try {
-      const responseData = await fetch(`http://localhost:8000/api/pobude/${pobudaId}/respond`, {
+      const responseData = await fetch(`${API_BASE_URL}/pobude/${pobudaId}/respond`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -98,7 +100,7 @@ const AdminPage = () => {
 
   const handleAiSort = async () => {
     try {
-      const res = await fetch('http://localhost:8000/admin/ai-prioritize', {
+      const res = await fetch(`${API_BASE_URL}/admin/ai-prioritize`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(pobude)
