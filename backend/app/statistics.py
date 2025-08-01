@@ -8,10 +8,14 @@ from .models import Pobuda, CategoryEnum
 
 router = APIRouter(prefix="/api/statistics", tags=["statistics"])
 
-# Categories for random data generation
+# Categories for random data generation - using actual categories from data
 CATEGORIES = [
-    "infrastructure", "transport", "environment", "culture", 
-    "education", "health", "safety", "other"
+    "Ceste", "Drevesa, rastje in zelene površine", "Parki in zelenice", 
+    "Javni red in mir", "Delo Mestnega redarstva", "Vzdrževanje cest",
+    "Kolesarske poti", "LPP", "Pešpoti in pločniki", "Razno",
+    "Umiritev prometa in varnost", "Vodovod", "Kultura", "Delo inšpekcij",
+    "Avtobusna postajališča", "Oglaševanje ", "Športne površine", 
+    "Mirujoči promet", "Socialno varstvo in zdravje", "Informatika", "other"
 ]
 
 def generate_random_category_stats():

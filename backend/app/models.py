@@ -5,13 +5,27 @@ from pydantic import BaseModel
 from enum import Enum
 
 class CategoryEnum(str, Enum):
-    infrastructure = "infrastructure"
-    transport = "transport"
-    environment = "environment"
-    culture = "culture"
-    education = "education"
-    health = "health"
-    safety = "safety"
+    # Main categories from the actual data
+    ceste = "Ceste"
+    drevesa_rastje_zelene = "Drevesa, rastje in zelene površine"
+    parki_zelene = "Parki in zelenice"
+    javni_red_mir = "Javni red in mir"
+    delo_redarstva = "Delo Mestnega redarstva"
+    vzdrzevanje_cest = "Vzdrževanje cest"
+    kolesarske_poti = "Kolesarske poti"
+    lpp = "LPP"
+    pespoti_plocniki = "Pešpoti in pločniki"
+    razno = "Razno"
+    umiritev_prometa = "Umiritev prometa in varnost"
+    vodovod = "Vodovod"
+    kultura = "Kultura"
+    delo_inspekcij = "Delo inšpekcij"
+    avtobusna_postajalisca = "Avtobusna postajališča"
+    oglaševanje = "Oglaševanje "
+    sportne_povrsine = "Športne površine"
+    mirujoci_promet = "Mirujoči promet"
+    socialno_varstvo = "Socialno varstvo in zdravje"
+    informatika = "Informatika"
     other = "other"
 
 class LoginRequest(BaseModel):

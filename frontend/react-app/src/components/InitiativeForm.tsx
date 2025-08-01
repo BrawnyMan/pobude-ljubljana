@@ -213,14 +213,27 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
                 disabled={isSubmitting}
               >
                 <option value="">Select a category</option>
-                <option value="infrastructure">Infrastructure</option>
-                <option value="transport">Transport</option>
-                <option value="environment">Environment</option>
-                <option value="culture">Culture</option>
-                <option value="education">Education</option>
-                <option value="health">Health</option>
-                <option value="safety">Safety</option>
-                <option value="other">Other</option>
+                <option value="ceste">Ceste</option>
+                <option value="drevesa_rastje_zelene">Drevesa, rastje in zelene površine</option>
+                <option value="parki_zelene">Parki in zelenice</option>
+                <option value="javni_red_mir">Javni red in mir</option>
+                <option value="delo_redarstva">Delo Mestnega redarstva</option>
+                <option value="vzdrzevanje_cest">Vzdrževanje cest</option>
+                <option value="kolesarske_poti">Kolesarske poti</option>
+                <option value="lpp">LPP</option>
+                <option value="pespoti_plocniki">Pešpoti in pločniki</option>
+                <option value="razno">Razno</option>
+                <option value="umiritev_prometa">Umiritev prometa in varnost</option>
+                <option value="vodovod">Vodovod</option>
+                <option value="kultura">Kultura</option>
+                <option value="delo_inspekcij">Delo inšpekcij</option>
+                <option value="avtobusna_postajalisca">Avtobusna postajališča</option>
+                <option value="oglaševanje">Oglaševanje </option>
+                <option value="sportne_povrsine">Športne površine</option>
+                <option value="mirujoci_promet">Mirujoči promet</option>
+                <option value="socialno_varstvo">Socialno varstvo in zdravje</option>
+                <option value="informatika">Informatika</option>
+                <option value="other">other</option>
               </select>
               <div id="category-help" className="form-text">
                 Choose the category that best describes your initiative
