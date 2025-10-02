@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { getPobude, Pobuda } from '../services/api';
 import MapView from '../components/MapView';
+import { toAssetUrl } from '../services/api';
 
 const PobudePage = () => {
     const [pobude, setPobude] = useState<Pobuda[]>([]);
@@ -14,11 +15,38 @@ const PobudePage = () => {
     const [offset, setOffset] = useState<number>(0);
     const [hasMore, setHasMore] = useState<boolean>(true);
     const isFetchingRef = useRef<boolean>(false);
+    const [noResults, setNoResults] = useState<boolean>(false);
+    const [autoFillFetches, setAutoFillFetches] = useState<number>(0);
     
     // Search and filter states
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [categoryFilter, setCategoryFilter] = useState('all');
     const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
+    const CATEGORY_OPTIONS = [
+        { value: 'all', label: 'Vse kategorije' },
+        { value: 'Ceste', label: 'Ceste' },
+        { value: 'Drevesa, rastje in zelene površine', label: 'Drevesa, rastje in zelene površine' },
+        { value: 'Parki in zelenice', label: 'Parki in zelenice' },
+        { value: 'Javni red in mir', label: 'Javni red in mir' },
+        { value: 'Delo Mestnega redarstva', label: 'Delo Mestnega redarstva' },
+        { value: 'Vzdrževanje cest', label: 'Vzdrževanje cest' },
+        { value: 'Kolesarske poti', label: 'Kolesarske poti' },
+        { value: 'LPP', label: 'LPP' },
+        { value: 'Pešpoti in pločniki', label: 'Pešpoti in pločniki' },
+        { value: 'Razno', label: 'Razno' },
+        { value: 'Umiritev prometa in varnost', label: 'Umiritev prometa in varnost' },
+        { value: 'Vodovod', label: 'Vodovod' },
+        { value: 'Kultura', label: 'Kultura' },
+        { value: 'Delo inšpekcij', label: 'Delo inšpekcij' },
+        { value: 'Avtobusna postajališča', label: 'Avtobusna postajališča' },
+        { value: 'Oglaševanje ', label: 'Oglaševanje ' },
+        { value: 'Športne površine', label: 'Športne površine' },
+        { value: 'Mirujoči promet', label: 'Mirujoči promet' },
+        { value: 'Socialno varstvo in zdravje', label: 'Socialno varstvo in zdravje' },
+        { value: 'Informatika', label: 'Informatika' },
+        { value: 'other', label: 'Drugo' },
+    ];
 
     useEffect(() => {
         // initial fetch
@@ -28,7 +56,25 @@ const PobudePage = () => {
 
     useEffect(() => {
         filterAndSortPobude();
-    }, [pobude, searchTerm, statusFilter, sortOrder]);
+    }, [pobude, searchTerm, statusFilter, categoryFilter, sortOrder]);
+
+    // Handle ESC key to close modal
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape' && selectedPobuda) {
+                setSelectedPobuda(null);
+                setFocusLocation(null);
+            }
+        };
+
+        if (selectedPobuda) {
+            document.addEventListener('keydown', handleKeyDown);
+        }
+
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [selectedPobuda]);
 
     const fetchNextPage = useCallback(async (reset: boolean = false) => {
         if (isFetchingRef.current) return;
@@ -73,6 +119,11 @@ const PobudePage = () => {
             filtered = filtered.filter(pobuda => pobuda.status === statusFilter);
         }
 
+        // Apply category filter (matches exact category text)
+        if (categoryFilter !== 'all') {
+            filtered = filtered.filter(pobuda => pobuda.category === categoryFilter);
+        }
+
         // Sort by date
         filtered.sort((a, b) => {
             const dateA = new Date(a.created_at).getTime();
@@ -81,6 +132,7 @@ const PobudePage = () => {
         });
 
         setFilteredPobude(filtered);
+        setNoResults(filtered.length === 0);
     };
 
     // Infinite scroll handler
@@ -92,7 +144,15 @@ const PobudePage = () => {
         if (!el) return;
         const observer = new IntersectionObserver((entries) => {
             const first = entries[0];
-            if (first.isIntersecting && hasMore && !isInitialLoading && !isFetchingMore) {
+            const isScrollable = !!rootEl && (rootEl.scrollHeight - rootEl.clientHeight > 20);
+            if (!isScrollable && hasMore && !isInitialLoading && !isFetchingMore && !noResults) {
+                if (autoFillFetches < 2) {
+                    setAutoFillFetches(prev => prev + 1);
+                    fetchNextPage();
+                }
+                return;
+            }
+            if (first.isIntersecting && hasMore && !isInitialLoading && !isFetchingMore && !noResults && isScrollable) {
                 fetchNextPage();
             }
         }, { root: rootEl ?? null, rootMargin: '200px', threshold: 0 });
@@ -100,7 +160,12 @@ const PobudePage = () => {
         return () => {
             observer.disconnect();
         };
-    }, [fetchNextPage, hasMore, isInitialLoading, isFetchingMore]);
+    }, [fetchNextPage, hasMore, isInitialLoading, isFetchingMore, noResults, autoFillFetches]);
+
+    // Reset auto-fill when filters or pageSize change
+    useEffect(() => {
+        setAutoFillFetches(0);
+    }, [searchTerm, statusFilter, categoryFilter, pageSize]);
 
     const handlePobudaSelect = (pobuda: Pobuda) => {
         setSelectedPobuda(pobuda);
@@ -156,7 +221,7 @@ const PobudePage = () => {
                             />
                         </div>
                         <div className="row g-2">
-                            <div className="col">
+                            <div className="col-12 col-md-6">
                                 <label htmlFor="status-filter" className="visually-hidden">Filtriraj po statusu</label>
                                 <select
                                     id="status-filter"
@@ -170,7 +235,23 @@ const PobudePage = () => {
                                     <option value="odgovorjeno">Odgovorjene</option>
                                 </select>
                             </div>
-                            <div className="col">
+                            <div className="col-12 col-md-6">
+                                <label htmlFor="category-filter" className="visually-hidden">Filtriraj po kategoriji</label>
+                                <select
+                                    id="category-filter"
+                                    className="form-select"
+                                    value={categoryFilter}
+                                    onChange={(e) => setCategoryFilter(e.target.value)}
+                                    aria-label="Filtriranje pobud po kategoriji"
+                                >
+                                    {CATEGORY_OPTIONS.map(opt => (
+                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                        <div className="row g-2 mt-2">
+                            <div className="col-12 col-md-6">
                                 <label htmlFor="sort-order" className="visually-hidden">Razvrsti po datumu</label>
                                 <select
                                     id="sort-order"
@@ -183,7 +264,7 @@ const PobudePage = () => {
                                     <option value="oldest">Najstarejše najprej</option>
                                 </select>
                             </div>
-                            <div className="col">
+                            <div className="col-12 col-md-6">
                                 <label htmlFor="page-size" className="visually-hidden">Število na stran</label>
                                 <select
                                     id="page-size"
@@ -197,9 +278,9 @@ const PobudePage = () => {
                                     }}
                                     aria-label="Število elementov na stran"
                                 >
-                                    <option value={10}>10</option>
-                                    <option value={20}>20</option>
-                                    <option value={50}>50</option>
+                                    <option value={10}>10 pobud na stran</option>
+                                    <option value={20}>20 pobud na stran</option>
+                                    <option value={50}>50 pobud na stran</option>
                                 </select>
                             </div>
                         </div>
@@ -242,8 +323,11 @@ const PobudePage = () => {
                                 </div>
                             </div>
                         ))}
-                        <div ref={sentinelRef} />
+                        {!noResults && <div ref={sentinelRef} />}
                     </div>
+                    {noResults && (
+                        <div className="text-center text-muted mt-2"><small>Ni najdenih pobud za izbrane filtre.</small></div>
+                    )}
                     {isFetchingMore && (
                         <div className="text-center py-2">
                             <div className="spinner-border spinner-border-sm" role="status" aria-label="Nalaganje dodatnih">
@@ -287,7 +371,7 @@ const PobudePage = () => {
                                     <div className="mb-3">
                                         <h3 className="h6">Slika</h3>
                                         <img
-                                            src={selectedPobuda.image_path}
+                                            src={toAssetUrl(selectedPobuda.image_path)}
                                             alt={`Slika za ${selectedPobuda.title}`}
                                             className="img-fluid rounded"
                                         />

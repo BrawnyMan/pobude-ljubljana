@@ -28,7 +28,7 @@ const LoginPage: React.FC = () => {
       localStorage.setItem('admin_token', data.token);
       navigate('/admin');
     } catch (err) {
-      setError('Invalid username or password');
+      setError('Napačno uporabniško ime ali geslo');
     } finally {
       setIsSubmitting(false);
     }
@@ -36,10 +36,10 @@ const LoginPage: React.FC = () => {
 
   return (
     <div className="container mt-5" style={{ maxWidth: 400 }}>
-      <h1 className="mb-4">Admin Login</h1>
-      <form onSubmit={handleSubmit} role="form" aria-label="Admin login form">
+      <h1 className="mb-4">Administratorska prijava</h1>
+      <form onSubmit={handleSubmit} role="form" aria-label="Obrazec za administratorsko prijavo">
         <div className="mb-3">
-          <label htmlFor="username" className="form-label">Username</label>
+          <label htmlFor="username" className="form-label">Uporabniško ime</label>
           <input
             type="text"
             className="form-control"
@@ -54,7 +54,7 @@ const LoginPage: React.FC = () => {
           />
         </div>
         <div className="mb-3">
-          <label htmlFor="password" className="form-label">Password</label>
+          <label htmlFor="password" className="form-label">Geslo</label>
           <input
             type="password"
             className="form-control"
@@ -79,11 +79,11 @@ const LoginPage: React.FC = () => {
           disabled={isSubmitting}
           aria-describedby={isSubmitting ? "submitting-status" : undefined}
         >
-          {isSubmitting ? 'Logging in...' : 'Login'}
+          {isSubmitting ? 'Prijavljam...' : 'Prijavi se'}
         </button>
         {isSubmitting && (
           <div id="submitting-status" className="visually-hidden" aria-live="polite">
-            Logging in, please wait...
+            Prijavljam, prosim počakajte...
           </div>
         )}
       </form>

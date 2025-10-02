@@ -1,9 +1,61 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+
+// CSS styles for focus states
+const focusStyles = `
+  /* Focus styles for all links in the header */
+  header.header a:focus {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 0 0 3px #ffffff !important;
+    outline: 3px solid #ffffff !important;
+    outline-offset: 2px !important;
+    border-radius: 4px !important;
+    z-index: 9999 !important;
+    position: relative !important;
+  }
+  
+  /* Specific selectors for better targeting */
+  header.header h1 a:focus,
+  header.header .nav-link:focus,
+  header.header a.text-white:focus {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 0 0 3px #ffffff !important;
+    outline: 3px solid #ffffff !important;
+    outline-offset: 2px !important;
+    border-radius: 4px !important;
+    z-index: 9999 !important;
+    position: relative !important;
+  }
+`;
 
 const Header: React.FC = () => {
     const navigate = useNavigate();
     const isLoggedIn = localStorage.getItem('admin_token') === 'dummy-admin-token';
+
+    // Inject styles when component mounts
+    useEffect(() => {
+        const styleId = 'header-focus-styles';
+        
+        // Remove existing style if present
+        const existingStyle = document.getElementById(styleId);
+        if (existingStyle) {
+            existingStyle.remove();
+        }
+        
+        // Create and inject new style element
+        const styleElement = document.createElement('style');
+        styleElement.id = styleId;
+        styleElement.textContent = focusStyles;
+        document.head.appendChild(styleElement);
+        
+        // Cleanup on unmount
+        return () => {
+            const style = document.getElementById(styleId);
+            if (style) {
+                style.remove();
+            }
+        };
+    }, []);
 
     const handleAdminClick = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -33,7 +85,7 @@ const Header: React.FC = () => {
                             <Link className="nav-link text-white" to="/pobude" role="menuitem">Pobude</Link>
                         </li>
                         <li className="nav-item" role="none">
-                            <Link className="nav-link text-white" to="/statistics" role="menuitem">Statistics</Link>
+                            <Link className="nav-link text-white" to="/statistics" role="menuitem">Statistika</Link>
                         </li>
                         <li className="nav-item" role="none">
                             <a 

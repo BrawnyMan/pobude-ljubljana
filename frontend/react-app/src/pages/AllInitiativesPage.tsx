@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getPobude, Pobuda } from '../services/api';
+import { getPobude, Pobuda, toAssetUrl } from '../services/api';
 import { Link } from 'react-router-dom';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -56,7 +56,7 @@ const AllInitiativesPage: React.FC = () => {
             <article className="card h-100">
               {initiative.image_path && (
                 <img 
-                  src={`${API_BASE_URL}${initiative.image_path}`}
+                  src={toAssetUrl(initiative.image_path)}
                   className="card-img-top"
                   alt={`Slika za pobudo: ${initiative.title}`}
                   style={{ height: '200px', objectFit: 'cover' }}

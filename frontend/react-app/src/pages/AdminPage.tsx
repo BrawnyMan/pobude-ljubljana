@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { getPobude, Pobuda } from '../services/api';
 import { Line } from 'react-chartjs-2';
 import {
@@ -35,45 +35,155 @@ const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const AdminPage = () => {
   const [pobude, setPobude] = useState<Pobuda[]>([]);
+  const [filteredPobude, setFilteredPobude] = useState<Pobuda[]>([]);
   const [statistics, setStatistics] = useState<Statistics | null>(null);
   const [selectedPobuda, setSelectedPobuda] = useState<Pobuda | null>(null);
   const [response, setResponse] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [aiSorted, setAiSorted] = useState<any[] | null>(null);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'v obravnavi' | 'odgovorjeno'>('v obravnavi');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [pageSize] = useState<number>(20);
+  const [offset, setOffset] = useState<number>(0);
+  const [hasMore, setHasMore] = useState<boolean>(true);
+  const [noResults, setNoResults] = useState<boolean>(false);
+  const [autoFillFetches, setAutoFillFetches] = useState<number>(0);
+  const isFetchingRef = useRef<boolean>(false);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const listContainerRef = useRef<HTMLDivElement | null>(null);
   // Add this state to store random importance values for each pobuda
   const [importanceMap, setImportanceMap] = useState<{ [id: number]: number }>({});
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    fetchNextPage(true);
+  }, [pageSize]);
 
   useEffect(() => {
-    // When pobude changes, generate a random importance for each pobuda
-    if (pobude.length > 0) {
-      const newMap: { [id: number]: number } = {};
-      pobude.forEach(p => {
-        newMap[p.id] = Math.floor(Math.random() * 101); // 0-100
-      });
-      setImportanceMap(newMap);
+    filterPobude();
+  }, [pobude, statusFilter, categoryFilter, searchTerm, importanceMap, sortOrder]);
+
+  // Reset auto-fill when filters change
+  useEffect(() => {
+    setAutoFillFetches(0);
+  }, [searchTerm, statusFilter, categoryFilter]);
+
+  // Handle ESC key to close modal
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && selectedPobuda) {
+        setSelectedPobuda(null);
+        setResponse('');
+      }
+    };
+
+    if (selectedPobuda) {
+      document.addEventListener('keydown', handleKeyDown);
     }
-  }, [pobude]);
 
-  const fetchData = async () => {
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedPobuda]);
+
+  // Remove automatic importance generation - only generate when AI sort is clicked
+
+  const fetchNextPage = useCallback(async (reset: boolean = false) => {
+    if (isFetchingRef.current) return;
     try {
-      setIsLoading(true);
+      isFetchingRef.current = true;
+      if (reset || offset === 0) {
+        setIsInitialLoading(true);
+      } else {
+        setIsFetchingMore(true);
+      }
+      const nextOffset = reset ? 0 : offset;
       const [pobudeData, statsData] = await Promise.all([
-        getPobude(),
+        getPobude({ limit: pageSize, offset: nextOffset }),
         fetch(`${API_BASE_URL}/admin/statistics`).then(res => res.json())
       ]);
-      setPobude(pobudeData);
+      if (reset) {
+        setPobude(pobudeData);
+        setOffset(pobudeData.length);
+      } else {
+        setPobude(prev => [...prev, ...pobudeData]);
+        setOffset(prev => prev + pobudeData.length);
+      }
       setStatistics(statsData);
+      setHasMore(pobudeData.length === pageSize);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch data');
+      setError(err instanceof Error ? err.message : 'Napaka pri pridobivanju podatkov');
     } finally {
-      setIsLoading(false);
+      setIsInitialLoading(false);
+      setIsFetchingMore(false);
+      isFetchingRef.current = false;
     }
+  }, [offset, pageSize]);
+
+  const filterPobude = () => {
+    let filtered = [...pobude];
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(pobuda =>
+        pobuda.title.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(pobuda => pobuda.status === statusFilter);
+    }
+
+    // Apply category filter
+    if (categoryFilter !== 'all') {
+      filtered = filtered.filter(pobuda => pobuda.category === categoryFilter);
+    }
+
+    // Apply importance sorting if available
+    if (Object.keys(importanceMap).length > 0) {
+      filtered.sort((a, b) => {
+        const aImportance = importanceMap[a.id] || 0;
+        const bImportance = importanceMap[b.id] || 0;
+        
+        if (sortOrder === 'desc') {
+          return bImportance - aImportance;
+        } else {
+          return aImportance - bImportance;
+        }
+      });
+    }
+
+    setFilteredPobude(filtered);
+    setNoResults(filtered.length === 0);
   };
+
+  // Infinite scroll handler
+  useEffect(() => {
+    const el = sentinelRef.current;
+    const rootEl = listContainerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver((entries) => {
+      const first = entries[0];
+      const isScrollable = !!rootEl && (rootEl.scrollHeight - rootEl.clientHeight > 20);
+      if (!isScrollable && hasMore && !isInitialLoading && !isFetchingMore && !noResults) {
+        if (autoFillFetches < 2) {
+          setAutoFillFetches(prev => prev + 1);
+          fetchNextPage();
+        }
+        return;
+      }
+      if (first.isIntersecting && hasMore && !isInitialLoading && !isFetchingMore && !noResults && isScrollable) {
+        fetchNextPage();
+      }
+    }, { root: rootEl ?? null, rootMargin: '200px', threshold: 0 });
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+    };
+  }, [fetchNextPage, hasMore, isInitialLoading, isFetchingMore, noResults, autoFillFetches]);
 
   const handleRespond = async (pobudaId: number) => {
     try {
@@ -86,15 +196,15 @@ const AdminPage = () => {
       });
 
       if (!responseData.ok) {
-        throw new Error('Failed to submit response');
+        throw new Error('Napaka pri oddaji odgovora');
       }
 
       // Refresh data after successful response
-      await fetchData();
+      await fetchNextPage(true);
       setSelectedPobuda(null);
       setResponse('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to submit response');
+      setError(err instanceof Error ? err.message : 'Napaka pri oddaji odgovora');
     }
   };
 
@@ -105,12 +215,30 @@ const AdminPage = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(pobude)
       });
+      
+      if (!res.ok) {
+        throw new Error('Napaka pri AI analizi pobud');
+      }
+      
       const data = await res.json();
-      setAiSorted(data);
+      if (Array.isArray(data)) {
+        // Create importance map from API response
+        const newMap: { [id: number]: number } = {};
+        data.forEach((p: any) => {
+          newMap[p.id] = p.priority_score;
+        });
+        setImportanceMap(newMap);
+      }
     } catch (err) {
+      console.error('AI prioritization error:', err);
       alert('Napaka pri AI analizi pobud');
     }
   };
+
+  const handleSortToggle = () => {
+    setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
+  };
+
 
   const chartOptions = {
     responsive: true,
@@ -120,7 +248,7 @@ const AdminPage = () => {
       },
       title: {
         display: true,
-        text: 'Pobude Statistics (Last 30 Days)',
+        text: 'Statistika pobud (zadnjih 30 dni)',
       },
     },
   };
@@ -129,13 +257,13 @@ const AdminPage = () => {
     labels: statistics.daily_stats.map(stat => new Date(stat.date).toLocaleDateString()),
     datasets: [
       {
-        label: 'New Pobude',
+        label: 'Nove pobude',
         data: statistics.daily_stats.map(stat => stat.count),
         borderColor: 'rgb(75, 192, 192)',
         tension: 0.1,
       },
       {
-        label: 'Responses',
+        label: 'Odgovori',
         data: statistics.response_stats.map(stat => stat.count),
         borderColor: 'rgb(255, 99, 132)',
         tension: 0.1,
@@ -143,12 +271,12 @@ const AdminPage = () => {
     ],
   } : null;
 
-  if (isLoading) {
+  if (isInitialLoading) {
     return (
       <div className="container mt-4">
         <div className="d-flex justify-content-center">
           <div className="spinner-border" role="status">
-            <span className="visually-hidden">Loading...</span>
+            <span className="visually-hidden">Nalaganje...</span>
           </div>
         </div>
       </div>
@@ -167,14 +295,14 @@ const AdminPage = () => {
 
   return (
     <div className="container mt-4">
-      <h2 className="mb-4">Admin Dashboard</h2>
+      <h2 className="mb-4">Administratorska nadzorna plošča</h2>
       
       {/* Statistics Cards */}
       <div className="row mb-4">
         <div className="col-md-4">
           <div className="card">
             <div className="card-body">
-              <h5 className="card-title">Total Pobude</h5>
+              <h5 className="card-title">Skupaj pobud</h5>
               <p className="card-text display-4">{statistics?.total_pobude}</p>
             </div>
           </div>
@@ -182,7 +310,7 @@ const AdminPage = () => {
         <div className="col-md-4">
           <div className="card">
             <div className="card-body">
-              <h5 className="card-title">Pending</h5>
+              <h5 className="card-title">V obravnavi</h5>
               <p className="card-text display-4">{statistics?.pending_pobude}</p>
             </div>
           </div>
@@ -190,7 +318,7 @@ const AdminPage = () => {
         <div className="col-md-4">
           <div className="card">
             <div className="card-body">
-              <h5 className="card-title">Responded</h5>
+              <h5 className="card-title">Odgovorjeno</h5>
               <p className="card-text display-4">{statistics?.responded_pobude}</p>
             </div>
           </div>
@@ -204,24 +332,88 @@ const AdminPage = () => {
         </div>
       </div>
 
+      {/* Filters */}
+      <div className="card mb-4">
+        <div className="card-body">
+          <div className="mb-3">
+            <label htmlFor="search-pobude" className="form-label">Išči po naslovu:</label>
+            <input
+              type="text"
+              id="search-pobude"
+              className="form-control"
+              placeholder="Išči po naslovu..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="row g-2">
+            <div className="col-12 col-md-4">
+              <label htmlFor="status-filter" className="form-label">Filtriraj po statusu:</label>
+              <select
+                id="status-filter"
+                className="form-select"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as 'all' | 'v obravnavi' | 'odgovorjeno')}
+              >
+                <option value="all">Vse pobude</option>
+                <option value="v obravnavi">Neodgovorjene</option>
+                <option value="odgovorjeno">Odgovorjene</option>
+              </select>
+            </div>
+            <div className="col-12 col-md-4">
+              <label htmlFor="category-filter" className="form-label">Filtriraj po kategoriji:</label>
+              <select
+                id="category-filter"
+                className="form-select"
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+              >
+                <option value="all">Vse kategorije</option>
+                <option value="Ceste">Ceste</option>
+                <option value="Drevesa, rastje in zelene površine">Drevesa, rastje in zelene površine</option>
+                <option value="Parki in zelenice">Parki in zelenice</option>
+                <option value="Javni red in mir">Javni red in mir</option>
+                <option value="Delo Mestnega redarstva">Delo Mestnega redarstva</option>
+                <option value="Vzdrževanje cest">Vzdrževanje cest</option>
+                <option value="Kolesarske poti">Kolesarske poti</option>
+                <option value="LPP">LPP</option>
+                <option value="Pešpoti in pločniki">Pešpoti in pločniki</option>
+                <option value="Razno">Razno</option>
+                <option value="Umiritev prometa in varnost">Umiritev prometa in varnost</option>
+                <option value="Vodovod">Vodovod</option>
+                <option value="Kultura">Kultura</option>
+                <option value="Delo inšpekcij">Delo inšpekcij</option>
+                <option value="Avtobusna postajališča">Avtobusna postajališča</option>
+                <option value="Oglaševanje ">Oglaševanje </option>
+                <option value="Športne površine">Športne površine</option>
+                <option value="Mirujoči promet">Mirujoči promet</option>
+                <option value="Socialno varstvo in zdravje">Socialno varstvo in zdravje</option>
+                <option value="Informatika">Informatika</option>
+                <option value="other">Drugo</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Pobude List */}
       <div className="card">
         <div className="card-body">
-          <h5 className="card-title">Pobude List</h5>
-          <div className="table-responsive">
+          <h5 className="card-title">Seznam pobud</h5>
+          <div className="table-responsive" ref={listContainerRef} style={{ maxHeight: '600px', overflowY: 'auto' }}>
             <table className="table">
               <thead>
                 <tr>
-                  <th>Title</th>
-                  <th>Location</th>
+                  <th>Naslov</th>
+                  <th>Lokacija</th>
                   <th>Status</th>
-                  <th>Created</th>
-                  <th>Importance</th> {/* New column */}
-                  <th>Actions</th>
+                  <th>Ustvarjeno</th>
+                  {Object.keys(importanceMap).length > 0 && <th>Pomembnost</th>}
+                  <th>Dejanja</th>
                 </tr>
               </thead>
               <tbody>
-                {pobude.map((pobuda) => (
+                {filteredPobude.map((pobuda) => (
                   <tr key={pobuda.id}>
                     <td>{pobuda.title}</td>
                     <td>{pobuda.location}</td>
@@ -231,89 +423,106 @@ const AdminPage = () => {
                       </span>
                     </td>
                     <td>{new Date(pobuda.created_at).toLocaleDateString()}</td>
-                    <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
-                      {/* Importance circle with improved color contrast */}
-                      {(() => {
-                        const value = importanceMap[pobuda.id] ?? '?';
-                        let bgColor = '#0056b3'; // darker blue for better contrast
-                        let textColor = '#ffffff'; // white text
-                        let ariaLabel = `Importance score: ${value} out of 100`;
-                        
-                        if (typeof value === 'number') {
-                          if (value < 50) {
-                            bgColor = '#b02a37'; // darker red for better contrast
-                            ariaLabel = `Low importance score: ${value} out of 100`;
-                          } else if (value > 80) {
-                            bgColor = '#198754'; // darker green for better contrast
-                            ariaLabel = `High importance score: ${value} out of 100`;
-                          } else {
-                            ariaLabel = `Medium importance score: ${value} out of 100`;
+                    {Object.keys(importanceMap).length > 0 && (
+                      <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                        {/* Importance circle with improved color contrast */}
+                        {(() => {
+                          const value = importanceMap[pobuda.id] ?? '?';
+                          let bgColor = '#0056b3'; // darker blue for better contrast
+                          let textColor = '#ffffff'; // white text
+                          let ariaLabel = `Importance score: ${value} out of 100`;
+                          
+                          if (typeof value === 'number') {
+                            if (value < 50) {
+                              bgColor = '#b02a37'; // darker red for better contrast
+                              ariaLabel = `Low importance score: ${value} out of 100`;
+                            } else if (value > 80) {
+                              bgColor = '#198754'; // darker green for better contrast
+                              ariaLabel = `High importance score: ${value} out of 100`;
+                            } else {
+                              ariaLabel = `Medium importance score: ${value} out of 100`;
+                            }
                           }
-                        }
-                        
-                        return (
-                          <span
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              width: 44,
-                              height: 44,
-                              borderRadius: '50%',
-                              background: bgColor,
-                              color: textColor,
-                              fontWeight: 'bold',
-                              fontSize: 18,
-                              boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
-                              border: '2px solid #fff',
-                            }}
-                            title="Simulated importance (ChatGPT)"
-                            aria-label={ariaLabel}
-                            role="img"
-                          >
-                            {value}
-                          </span>
-                        );
-                      })()}
-                    </td>
+                          
+                          return (
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: 44,
+                                height: 44,
+                                borderRadius: '50%',
+                                background: bgColor,
+                                color: textColor,
+                                fontWeight: 'bold',
+                                fontSize: 18,
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+                                border: '2px solid #fff',
+                              }}
+                              title="Simulated importance (ChatGPT)"
+                              aria-label={ariaLabel}
+                              role="img"
+                            >
+                              {value}
+                            </span>
+                          );
+                        })()}
+                      </td>
+                    )}
                     <td>
-                      <button
-                        className="btn btn-primary btn-sm"
-                        onClick={() => setSelectedPobuda(pobuda)}
-                      >
-                        {pobuda.status === 'v obravnavi' ? 'Respond' : 'View Response'}
-                      </button>
+                      {pobuda.status === 'v obravnavi' ? (
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={() => setSelectedPobuda(pobuda)}
+                        >
+                          Odgovori
+                        </button>
+                      ) : (
+                        <button
+                          className="btn btn-outline-secondary btn-sm"
+                          onClick={() => setSelectedPobuda(pobuda)}
+                        >
+                          Ogled odgovora
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
+                <div ref={sentinelRef} />
               </tbody>
             </table>
           </div>
+          {isFetchingMore && (
+            <div className="text-center py-2">
+              <div className="spinner-border spinner-border-sm" role="status" aria-label="Nalaganje dodatnih">
+                <span className="visually-hidden">Nalaganje...</span>
+              </div>
+            </div>
+          )}
+          {noResults && (
+            <div className="text-center text-muted mt-2"><small>Ni najdenih pobud za izbrane filtre.</small></div>
+          )}
+          {!hasMore && !noResults && (
+            <div className="text-center text-muted mt-2"><small>Ni več rezultatov.</small></div>
+          )}
         </div>
       </div>
 
       {/* Add this button above the list/table of initiatives */}
-      <button className="btn btn-info mb-3" onClick={handleAiSort}>
-        AI Sort by Priority
-      </button>
-
-      {/* AI Prioritized Initiatives */}
-      {aiSorted && (
-        <div className="mb-4">
-          <h4>AI Prioritized Initiatives</h4>
-          <ul className="list-group">
-            {aiSorted.map((p) => (
-              <li key={p.id} className="list-group-item d-flex justify-content-between align-items-center">
-                <span>
-                  <strong>{p.title}</strong>
-                  <span className="text-muted ms-2">({p.location})</span>
-                </span>
-                <span className="badge bg-primary rounded-pill">{p.priority_score}/100</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <div className="d-flex gap-2 mb-3">
+        <button className="btn btn-info" onClick={handleAiSort}>
+          AI razvrsti po prioriteti
+        </button>
+        {Object.keys(importanceMap).length > 0 && (
+          <button 
+            className="btn btn-outline-secondary" 
+            onClick={handleSortToggle}
+          >
+            {sortOrder === 'desc' ? '↓ Padajoče' : '↑ Naraščajoče'}
+          </button>
+        )}
+      </div>
 
       {/* Response Modal */}
       {selectedPobuda && (
@@ -322,7 +531,7 @@ const AdminPage = () => {
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">
-                  {selectedPobuda.status === 'v obravnavi' ? 'Respond to Pobuda' : 'View Response'}
+                  {selectedPobuda.status === 'v obravnavi' ? 'Odgovori na pobudo' : 'Ogled odgovora'}
                 </h5>
                 <button
                   type="button"
@@ -340,7 +549,7 @@ const AdminPage = () => {
                 
                 {selectedPobuda.status === 'v obravnavi' ? (
                   <div className="mb-3">
-                    <label htmlFor="response" className="form-label">Response:</label>
+                    <label htmlFor="response" className="form-label">Odgovor:</label>
                     <textarea
                       id="response"
                       className="form-control"
@@ -351,7 +560,7 @@ const AdminPage = () => {
                   </div>
                 ) : (
                   <div className="alert alert-info">
-                    <strong>Response:</strong>
+                    <strong>Odgovor:</strong>
                     <p className="mb-0">{selectedPobuda.response}</p>
                   </div>
                 )}
@@ -365,7 +574,7 @@ const AdminPage = () => {
                     setResponse('');
                   }}
                 >
-                  Close
+                  Zapri
                 </button>
                 {selectedPobuda.status === 'v obravnavi' && (
                   <button
@@ -374,7 +583,7 @@ const AdminPage = () => {
                     onClick={() => handleRespond(selectedPobuda.id)}
                     disabled={!response.trim()}
                   >
-                    Submit Response
+                    Oddaj odgovor
                   </button>
                 )}
               </div>

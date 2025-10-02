@@ -11,7 +11,7 @@ import {
   Legend,
   ArcElement,
 } from 'chart.js';
-import { Bar, Line, Doughnut } from 'react-chartjs-2';
+import { Bar, Line } from 'react-chartjs-2';
 
 ChartJS.register(
   CategoryScale,
@@ -74,12 +74,12 @@ const StatisticsPage: React.FC = () => {
         setLoading(true);
         const response = await fetch('http://localhost:8000/api/statistics/public');
         if (!response.ok) {
-          throw new Error('Failed to fetch statistics');
+          throw new Error('Napaka pri pridobivanju statistike');
         }
         const data = await response.json();
         setStatistics(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
+        setError(err instanceof Error ? err.message : 'Prišlo je do napake');
       } finally {
         setLoading(false);
       }
@@ -93,7 +93,7 @@ const StatisticsPage: React.FC = () => {
       <div className="container mt-4">
         <div className="d-flex justify-content-center">
           <div className="spinner-border" role="status">
-            <span className="visually-hidden">Loading...</span>
+            <span className="visually-hidden">Nalaganje...</span>
           </div>
         </div>
       </div>
@@ -114,7 +114,7 @@ const StatisticsPage: React.FC = () => {
     return (
       <div className="container mt-4">
         <div className="alert alert-warning" role="alert">
-          No statistics available.
+          Statistika ni na voljo.
         </div>
       </div>
     );
@@ -125,14 +125,14 @@ const StatisticsPage: React.FC = () => {
     labels: statistics.category_stats.map(stat => stat.category),
     datasets: [
       {
-        label: 'Responded',
+        label: 'Odgovorjeno',
         data: statistics.category_stats.map(stat => stat.responded),
         backgroundColor: 'rgba(40, 167, 69, 0.8)',
         borderColor: 'rgba(40, 167, 69, 1)',
         borderWidth: 1,
       },
       {
-        label: 'Pending',
+        label: 'V obravnavi',
         data: statistics.category_stats.map(stat => stat.pending),
         backgroundColor: 'rgba(255, 193, 7, 0.8)',
         borderColor: 'rgba(255, 193, 7, 1)',
@@ -145,14 +145,14 @@ const StatisticsPage: React.FC = () => {
     labels: statistics.monthly_stats.map(stat => stat.month),
     datasets: [
       {
-        label: 'Total Pobude',
+        label: 'Skupaj pobud',
         data: statistics.monthly_stats.map(stat => stat.total),
         borderColor: 'rgba(13, 110, 253, 1)',
         backgroundColor: 'rgba(13, 110, 253, 0.1)',
         tension: 0.1,
       },
       {
-        label: 'Responded',
+        label: 'Odgovorjeno',
         data: statistics.monthly_stats.map(stat => stat.responded),
         borderColor: 'rgba(40, 167, 69, 1)',
         backgroundColor: 'rgba(40, 167, 69, 0.1)',
@@ -165,7 +165,7 @@ const StatisticsPage: React.FC = () => {
     labels: statistics.category_stats.map(stat => stat.category),
     datasets: [
       {
-        label: 'Response Rate (%)',
+        label: 'Odzivnost (%)',
         data: statistics.category_stats.map(stat => stat.response_rate),
         backgroundColor: statistics.category_stats.map(stat => 
           stat.response_rate > 80 ? 'rgba(40, 167, 69, 0.8)' :
@@ -203,21 +203,21 @@ const StatisticsPage: React.FC = () => {
       },
       title: {
         display: true,
-        text: 'Statistics Overview',
+        text: 'Pregled statistike',
       },
     },
   };
 
   return (
     <div className="container mt-4">
-      <h1 className="mb-4">Pobude Statistics</h1>
+      <h1 className="mb-4">Statistika pobud</h1>
       
       {/* Summary Cards */}
       <div className="row mb-4">
         <div className="col-md-3">
           <div className="card text-center">
             <div className="card-body">
-              <h5 className="card-title">Total Pobude</h5>
+              <h5 className="card-title">Skupaj pobud</h5>
               <h2 className="text-primary">{statistics.summary.total_pobude}</h2>
             </div>
           </div>
@@ -225,7 +225,7 @@ const StatisticsPage: React.FC = () => {
         <div className="col-md-3">
           <div className="card text-center">
             <div className="card-body">
-              <h5 className="card-title">Responded</h5>
+              <h5 className="card-title">Odgovorjeno</h5>
               <h2 className="text-success">{statistics.summary.responded_pobude}</h2>
             </div>
           </div>
@@ -233,7 +233,7 @@ const StatisticsPage: React.FC = () => {
         <div className="col-md-3">
           <div className="card text-center">
             <div className="card-body">
-              <h5 className="card-title">Pending</h5>
+              <h5 className="card-title">V obravnavi</h5>
               <h2 className="text-warning">{statistics.summary.pending_pobude}</h2>
             </div>
           </div>
@@ -241,7 +241,7 @@ const StatisticsPage: React.FC = () => {
         <div className="col-md-3">
           <div className="card text-center">
             <div className="card-body">
-              <h5 className="card-title">Response Rate</h5>
+              <h5 className="card-title">Odzivnost</h5>
               <h2 className="text-info">{statistics.summary.response_rate}%</h2>
             </div>
           </div>
@@ -253,19 +253,19 @@ const StatisticsPage: React.FC = () => {
         <div className="col-md-6">
           <div className="card">
             <div className="card-header">
-              <h5 className="mb-0">Most Problematic Category</h5>
+              <h5 className="mb-0">Najbolj problematična kategorija</h5>
             </div>
             <div className="card-body">
               {statistics.most_problematic_category ? (
                 <div>
                   <h6 className="text-danger">{statistics.most_problematic_category.category}</h6>
-                  <p>Response Rate: {statistics.most_problematic_category.response_rate}%</p>
-                  <p>Total: {statistics.most_problematic_category.total}</p>
-                  <p>Responded: {statistics.most_problematic_category.responded}</p>
-                  <p>Pending: {statistics.most_problematic_category.pending}</p>
+                  <p>Odzivnost: {statistics.most_problematic_category.response_rate}%</p>
+                  <p>Skupaj: {statistics.most_problematic_category.total}</p>
+                  <p>Odgovorjeno: {statistics.most_problematic_category.responded}</p>
+                  <p>V obravnavi: {statistics.most_problematic_category.pending}</p>
                 </div>
               ) : (
-                <p>No data available</p>
+                <p>Ni podatkov</p>
               )}
             </div>
           </div>
@@ -273,19 +273,19 @@ const StatisticsPage: React.FC = () => {
         <div className="col-md-6">
           <div className="card">
             <div className="card-header">
-              <h5 className="mb-0">Least Problematic Category</h5>
+              <h5 className="mb-0">Najmanj problematična kategorija</h5>
             </div>
             <div className="card-body">
               {statistics.least_problematic_category ? (
                 <div>
                   <h6 className="text-success">{statistics.least_problematic_category.category}</h6>
-                  <p>Response Rate: {statistics.least_problematic_category.response_rate}%</p>
-                  <p>Total: {statistics.least_problematic_category.total}</p>
-                  <p>Responded: {statistics.least_problematic_category.responded}</p>
-                  <p>Pending: {statistics.least_problematic_category.pending}</p>
+                  <p>Odzivnost: {statistics.least_problematic_category.response_rate}%</p>
+                  <p>Skupaj: {statistics.least_problematic_category.total}</p>
+                  <p>Odgovorjeno: {statistics.least_problematic_category.responded}</p>
+                  <p>V obravnavi: {statistics.least_problematic_category.pending}</p>
                 </div>
               ) : (
-                <p>No data available</p>
+                <p>Ni podatkov</p>
               )}
             </div>
           </div>
@@ -297,7 +297,7 @@ const StatisticsPage: React.FC = () => {
         <div className="col-md-6">
           <div className="card">
             <div className="card-header">
-              <h5 className="mb-0">Category Distribution</h5>
+              <h5 className="mb-0">Porazdelitev po kategorijah</h5>
             </div>
             <div className="card-body">
               <Bar data={categoryChartData} options={chartOptions} />
@@ -307,7 +307,7 @@ const StatisticsPage: React.FC = () => {
         <div className="col-md-6">
           <div className="card">
             <div className="card-header">
-              <h5 className="mb-0">Monthly Trends</h5>
+              <h5 className="mb-0">Mesečni trendi</h5>
             </div>
             <div className="card-body">
               <Line data={monthlyChartData} options={chartOptions} />
@@ -320,7 +320,7 @@ const StatisticsPage: React.FC = () => {
         <div className="col-md-6">
           <div className="card">
             <div className="card-header">
-              <h5 className="mb-0">Response Rate by Category</h5>
+              <h5 className="mb-0">Odzivnost po kategorijah</h5>
             </div>
             <div className="card-body">
               <Bar data={responseRateChartData} options={chartOptions} />
@@ -330,7 +330,7 @@ const StatisticsPage: React.FC = () => {
         <div className="col-md-6">
           <div className="card">
             <div className="card-header">
-              <h5 className="mb-0">Location Distribution</h5>
+              <h5 className="mb-0">Porazdelitev po lokacijah</h5>
             </div>
             <div className="card-body">
               <Bar data={locationChartData} options={chartOptions} />
@@ -344,18 +344,18 @@ const StatisticsPage: React.FC = () => {
         <div className="col-md-6">
           <div className="card">
             <div className="card-header">
-              <h5 className="mb-0">Category Breakdown</h5>
+              <h5 className="mb-0">Razčlenitev po kategorijah</h5>
             </div>
             <div className="card-body">
               <div className="table-responsive">
                 <table className="table table-sm">
                   <thead>
                     <tr>
-                      <th>Category</th>
-                      <th>Total</th>
-                      <th>Responded</th>
-                      <th>Pending</th>
-                      <th>Rate %</th>
+                      <th>Kategorija</th>
+                      <th>Skupaj</th>
+                      <th>Odgovorjeno</th>
+                      <th>V obravnavi</th>
+                      <th>Odzivnost %</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -377,17 +377,17 @@ const StatisticsPage: React.FC = () => {
         <div className="col-md-6">
           <div className="card">
             <div className="card-header">
-              <h5 className="mb-0">Location Breakdown</h5>
+              <h5 className="mb-0">Razčlenitev po lokacijah</h5>
             </div>
             <div className="card-body">
               <div className="table-responsive">
                 <table className="table table-sm">
                   <thead>
                     <tr>
-                      <th>Location</th>
-                      <th>Total</th>
-                      <th>Responded</th>
-                      <th>Pending</th>
+                      <th>Lokacija</th>
+                      <th>Skupaj</th>
+                      <th>Odgovorjeno</th>
+                      <th>V obravnavi</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -413,10 +413,10 @@ const StatisticsPage: React.FC = () => {
           <div className="col-12">
             <div className="card">
               <div className="card-header">
-                <h5 className="mb-0">Additional Information</h5>
+              <h5 className="mb-0">Dodatne informacije</h5>
               </div>
               <div className="card-body">
-                <p><strong>Average Response Time:</strong> {statistics.summary.average_response_time} days</p>
+                <p><strong>Povprečen čas odziva:</strong> {statistics.summary.average_response_time} dni</p>
               </div>
             </div>
           </div>

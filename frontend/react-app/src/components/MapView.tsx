@@ -8,6 +8,37 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import L from 'leaflet';
 
+// Add CSS to make all map elements non-focusable
+const mapFocusStyles = `
+  .leaflet-container,
+  .leaflet-container *,
+  .leaflet-marker-icon,
+  .leaflet-popup,
+  .leaflet-popup-content,
+  .leaflet-popup-tip,
+  .leaflet-control,
+  .leaflet-control-zoom,
+  .leaflet-control-attribution {
+    outline: none !important;
+    tab-index: -1 !important;
+  }
+  
+  .leaflet-container:focus,
+  .leaflet-container *:focus {
+    outline: none !important;
+  }
+`;
+
+// Inject the styles into the document head
+if (typeof document !== 'undefined') {
+  const styleElement = document.createElement('style');
+  styleElement.textContent = mapFocusStyles;
+  if (!document.head.querySelector('style[data-map-focus]')) {
+    styleElement.setAttribute('data-map-focus', 'true');
+    document.head.appendChild(styleElement);
+  }
+}
+
 // Fix for default marker icon
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
@@ -133,6 +164,7 @@ const MapView: React.FC<MapViewProps> = ({ isSelectionMode, onLocationSelect, fo
             style={{ height: '100%', width: '100%' }}
             role="application"
             aria-label={isSelectionMode ? "Interaktivni zemljevid za izbiro lokacije" : "Zemljevid s prikazom vseh pobud"}
+            tabIndex={-1}
         >
             <MapContainer
                 center={[46.0569, 14.5058]} // Ljubljana coordinates
@@ -143,6 +175,7 @@ const MapView: React.FC<MapViewProps> = ({ isSelectionMode, onLocationSelect, fo
                 maxBoundsViscosity={1.0}
                 minZoom={12}
                 maxZoom={18}
+                tabIndex={-1}
             >
                 <MapBoundsHandler />
                 <TileLayer
@@ -158,6 +191,7 @@ const MapView: React.FC<MapViewProps> = ({ isSelectionMode, onLocationSelect, fo
                     maxClusterRadius={50}
                     spiderfyOnMaxZoom={true}
                     showCoverageOnHover={false}
+                    tabIndex={-1}
                 >
                     {pobude.map((pobuda) => {
                         if (
@@ -174,9 +208,10 @@ const MapView: React.FC<MapViewProps> = ({ isSelectionMode, onLocationSelect, fo
                                 key={pobuda.id}
                                 position={[pobuda.latitude, pobuda.longitude]}
                                 icon={pobuda.status === 'odgovorjeno' ? answeredIcon : pendingIcon}
+                                tabIndex={-1}
                             >
-                                <Popup>
-                                    <div className="popup-content">
+                                <Popup tabIndex={-1}>
+                                    <div className="popup-content" tabIndex={-1}>
                                         <h3 className="h6">{pobuda.title}</h3>
                                         <p className="text-muted mb-2">
                                             <small>{pobuda.location}</small>
@@ -200,9 +235,10 @@ const MapView: React.FC<MapViewProps> = ({ isSelectionMode, onLocationSelect, fo
                     <Marker
                         position={selectedLocation}
                         icon={pinIcon}
+                        tabIndex={-1}
                     >
-                        <Popup>
-                            <div>
+                        <Popup tabIndex={-1}>
+                            <div tabIndex={-1}>
                                 <strong>Izbrana lokacija</strong><br />
                                 Širina: {selectedLocation[0].toFixed(6)}<br />
                                 Dolžina: {selectedLocation[1].toFixed(6)}

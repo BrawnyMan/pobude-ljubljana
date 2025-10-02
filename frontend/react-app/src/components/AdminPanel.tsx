@@ -30,8 +30,8 @@ const AdminPanel = () => {
 
     return (
         <div className="container">
-            <h1 className="visually-hidden">Admin Panel</h1>
-            <div role="list" aria-label="List of initiatives for admin review">
+            <h1 className="visually-hidden">Administratorska plošča</h1>
+            <div role="list" aria-label="Seznam pobud za administratorski pregled">
                 {initiatives.map(i => (
                     <div key={i.id} className="card mb-3 p-3" role="listitem">
                         <InitiativeCard initiative={i} />
@@ -39,14 +39,14 @@ const AdminPanel = () => {
                             <button 
                                 className="btn btn-success me-2" 
                                 onClick={() => handleApprove(i.id)}
-                                aria-label={`Approve initiative: ${i.title}`}
+                                aria-label={`Odobri pobudo: ${i.title}`}
                             >
                                 Odobri
                             </button>
                             <button 
                                 className="btn btn-danger" 
                                 onClick={() => handleReject(i.id)}
-                                aria-label={`Reject initiative: ${i.title}`}
+                                aria-label={`Zavrni pobudo: ${i.title}`}
                             >
                                 Zavrni
                             </button>

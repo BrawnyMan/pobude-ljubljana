@@ -1,30 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { createPobuda } from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import { searchStreets } from '../services/api';
 
-// Popular Ljubljana streets
-const LJUBLJANA_STREETS = [
-    'Prešernova cesta',
-    'Slovenska cesta',
-    'Miklošičeva ulica',
-    'Trubarjeva ulica',
-    'Čopova ulica',
-    'Wolfova ulica',
-    'Kongresni trg',
-    'Mestni trg',
-    'Stritarjeva ulica',
-    'Gosposka ulica',
-    'Cankarjeva cesta',
-    'Dunajska cesta',
-    'Celovška cesta',
-    'Vegova ulica',
-    'Kardeljeva ploščad',
-    'Tivolska cesta',
-    'Masarykova cesta',
-    'Bleiweisova cesta',
-    'Šmartinska cesta',
-    'Litijska cesta'
-];
+// Prej: statični seznam ulic. Zdaj uporabljamo iskanje prek API-ja.
 
 interface FormData {
   location: string;
@@ -63,6 +42,36 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
     streetNumber: '',
     category: ''
   });
+
+  const [streetQuery, setStreetQuery] = useState('');
+  const [streetOptions, setStreetOptions] = useState<string[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [streetError, setStreetError] = useState<string | null>(null);
+
+  // Debounced street search
+  useEffect(() => {
+    if (!streetQuery || streetQuery.trim().length < 2) {
+      setStreetOptions([]);
+      return;
+    }
+    const ctrl = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        setIsSearching(true);
+        setStreetError(null);
+        const results = await searchStreets(streetQuery, 20);
+        setStreetOptions(results);
+      } catch (err) {
+        setStreetError('Napaka pri iskanju ulic');
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
+    return () => {
+      ctrl.abort();
+      clearTimeout(timer);
+    };
+  }, [streetQuery]);
 
   // Update form data when location is selected on the map
   useEffect(() => {
@@ -118,23 +127,55 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
             <div className="mb-3">
               <label htmlFor="location" className="form-label">Lokacija:</label>
               <div className="d-flex gap-2">
-                <select
-                  id="location"
-                  name="location"
-                  className="form-select"
-                  value={formData.location}
-                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                  required={!selectedLocation}
-                  aria-describedby={!selectedLocation ? "location-help" : undefined}
-                  disabled={isSubmitting}
-                >
-                  <option value="">Izberite ulico</option>
-                  {LJUBLJANA_STREETS.map((street) => (
-                    <option key={street} value={street}>
-                      {street}
-                    </option>
-                  ))}
-                </select>
+                <div className="flex-grow-1 position-relative">
+                  <input
+                    type="text"
+                    id="location"
+                    name="location"
+                    className="form-control"
+                    placeholder="Začnite tipkati ime ulice…"
+                    value={streetQuery}
+                    onChange={(e) => setStreetQuery(e.target.value)}
+                    onBlur={() => {
+                      // If user typed but didn't select, keep typed value
+                      if (!formData.location && streetQuery) {
+                        setFormData(prev => ({ ...prev, location: streetQuery }));
+                      }
+                    }}
+                    required={!selectedLocation}
+                    aria-describedby={!selectedLocation ? "location-help" : undefined}
+                    disabled={isSubmitting}
+                    autoComplete="off"
+                  />
+                  {(streetOptions.length > 0 || isSearching) && (
+                    <div className="list-group position-absolute w-100 mt-1" style={{ zIndex: 1000, maxHeight: '240px', overflowY: 'auto' }}>
+                      {isSearching && (
+                        <div className="list-group-item text-muted small">Iskanje…</div>
+                      )}
+                      {!isSearching && streetOptions.map((opt) => (
+                        <button
+                          type="button"
+                          key={opt}
+                          className="list-group-item list-group-item-action"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => {
+                            setFormData(prev => ({ ...prev, location: opt }));
+                            setStreetQuery(opt);
+                            setStreetOptions([]);
+                          }}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                      {!isSearching && streetOptions.length === 0 && streetQuery.length >= 2 && (
+                        <div className="list-group-item text-muted small">Ni zadetkov</div>
+                      )}
+                    </div>
+                  )}
+                  {streetError && (
+                    <div className="form-text text-danger">{streetError}</div>
+                  )}
+                </div>
                 <input
                   type="text"
                   id="streetNumber"
