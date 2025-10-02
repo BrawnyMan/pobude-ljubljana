@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, File, UploadFile, Form
+from fastapi import APIRouter, HTTPException, File, UploadFile, Form, Query
 from sqlmodel import Session, select
 from datetime import datetime, timedelta
 from collections import defaultdict
@@ -301,9 +301,24 @@ def get_pobuda(pobuda_id: int):
         return pobuda
 
 @router.get("/api/pobude", response_model=List[Pobuda])
-def get_pobude():
+def get_pobude(limit: Optional[int] = Query(default=None, ge=1, le=100), offset: Optional[int] = Query(default=None, ge=0)):
     with Session(engine) as session:
-        pobude = session.exec(select(Pobuda)).all()
+        # If no pagination params are provided, preserve previous behavior (return all)
+        if limit is None and offset is None:
+            pobude = session.exec(select(Pobuda)).all()
+            return pobude
+
+        # Apply sensible defaults when only one of the params is provided
+        effective_limit = limit if limit is not None else 10
+        effective_offset = offset if offset is not None else 0
+
+        statement = (
+            select(Pobuda)
+            .order_by(Pobuda.created_at.desc())
+            .offset(effective_offset)
+            .limit(effective_limit)
+        )
+        pobude = session.exec(statement).all()
         return pobude
 
 @router.put("/api/pobude/{pobuda_id}/respond", response_model=Pobuda)

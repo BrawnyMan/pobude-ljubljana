@@ -15,7 +15,7 @@ const AllInitiativesPage: React.FC = () => {
         const data = await getPobude();
         setInitiatives(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch initiatives');
+        setError(err instanceof Error ? err.message : 'Napaka pri pridobivanju pobud');
       } finally {
         setIsLoading(false);
       }
@@ -28,8 +28,8 @@ const AllInitiativesPage: React.FC = () => {
     return (
       <div className="container py-4">
         <div className="text-center">
-          <div className="spinner-border" role="status" aria-label="Loading initiatives">
-            <span className="visually-hidden">Loading...</span>
+          <div className="spinner-border" role="status" aria-label="Nalaganje pobud">
+            <span className="visually-hidden">Nalaganje...</span>
           </div>
         </div>
       </div>
@@ -48,9 +48,9 @@ const AllInitiativesPage: React.FC = () => {
 
   return (
     <div className="container py-4">
-      <h1 className="mb-4">All Initiatives</h1>
+      <h1 className="mb-4">Vse pobude</h1>
       
-      <div className="row g-4" role="list" aria-label="List of initiatives">
+      <div className="row g-4" role="list" aria-label="Seznam pobud">
         {initiatives.map(initiative => (
           <div key={initiative.id} className="col-md-6 col-lg-4" role="listitem">
             <article className="card h-100">
@@ -58,7 +58,7 @@ const AllInitiativesPage: React.FC = () => {
                 <img 
                   src={`${API_BASE_URL}${initiative.image_path}`}
                   className="card-img-top"
-                  alt={`Image for initiative: ${initiative.title}`}
+                  alt={`Slika za pobudo: ${initiative.title}`}
                   style={{ height: '200px', objectFit: 'cover' }}
                 />
               )}
@@ -93,9 +93,9 @@ const AllInitiativesPage: React.FC = () => {
 
       {initiatives.length === 0 && (
         <div className="text-center py-5">
-          <p className="mb-4">No initiatives found.</p>
+          <p className="mb-4">Ni najdenih pobud.</p>
           <Link to="/" className="btn btn-primary">
-            Submit New Initiative
+            Oddaj novo pobudo
           </Link>
         </div>
       )}

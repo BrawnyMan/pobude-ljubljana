@@ -51,6 +51,7 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
   const [step, setStep] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedFileName, setSelectedFileName] = useState<string>('');
   const [formData, setFormData] = useState<FormData>({
     location: '',
     latitude: 46.0569, // Ljubljana center
@@ -86,7 +87,7 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
       
       // Set location based on whether coordinates are selected
       if (selectedLocation) {
-        submitData.append('location', 'Selected location on map');
+        submitData.append('location', 'Izbrana lokacija na zemljevidu');
       } else {
         submitData.append('location', `${formData.location} ${formData.streetNumber}, Ljubljana`);
       }
@@ -102,7 +103,7 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
       await createPobuda(submitData);
       navigate('/pobude');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred while submitting the initiative');
+      setError(err instanceof Error ? err.message : 'Pri oddaji pobude je prišlo do napake');
     } finally {
       setIsSubmitting(false);
     }
@@ -113,9 +114,9 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
       case 1:
         return (
           <div className="mb-4">
-            <h2 className="mb-3">Step 1: Location Details</h2>
+            <h2 className="mb-3">Korak 1: Podrobnosti lokacije</h2>
             <div className="mb-3">
-              <label htmlFor="location" className="form-label">Location:</label>
+              <label htmlFor="location" className="form-label">Lokacija:</label>
               <div className="d-flex gap-2">
                 <select
                   id="location"
@@ -127,7 +128,7 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
                   aria-describedby={!selectedLocation ? "location-help" : undefined}
                   disabled={isSubmitting}
                 >
-                  <option value="">Select a street</option>
+                  <option value="">Izberite ulico</option>
                   {LJUBLJANA_STREETS.map((street) => (
                     <option key={street} value={street}>
                       {street}
@@ -140,7 +141,7 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
                   name="streetNumber"
                   className="form-control"
                   style={{ width: '100px' }}
-                  placeholder="No."
+                  placeholder="Št."
                   value={formData.streetNumber}
                   onChange={(e) => setFormData(prev => ({ ...prev, streetNumber: e.target.value }))}
                   required={!selectedLocation}
@@ -150,29 +151,29 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
               </div>
               {!selectedLocation && (
                 <div id="location-help" className="form-text">
-                  Please select a street and enter the house number, or click on the map to select a location.
+                  Izberite ulico in vnesite hišno številko ali kliknite na zemljevid, da izberete lokacijo.
                 </div>
               )}
             </div>
             {selectedLocation && (
               <div className="mb-3">
                 <div className="text-muted mb-2">
-                  Selected coordinates: {formData.latitude.toFixed(6)}, {formData.longitude.toFixed(6)}
+                  Izbrane koordinate: {formData.latitude.toFixed(6)}, {formData.longitude.toFixed(6)}
                 </div>
                 <button
                   type="button"
                   className="btn btn-outline-danger btn-sm"
                   onClick={onClearLocation}
                   disabled={isSubmitting}
-                  aria-label="Remove map selection"
+                  aria-label="Odstrani izbiro na zemljevidu"
                 >
-                  Remove map selection
+                  Odstrani izbiro na zemljevidu
                 </button>
               </div>
             )}
             {!selectedLocation && (
               <div className="alert alert-info" role="alert">
-                Please click on the map to select a location or use the street input above
+                Kliknite na zemljevid, da izberete lokacijo, ali uporabite vnos ulice zgoraj
               </div>
             )}
           </div>
@@ -180,9 +181,9 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
       case 2:
         return (
           <div className="mb-4">
-            <h2 className="mb-3">Step 2: Initiative Details</h2>
+            <h2 className="mb-3">Korak 2: Podrobnosti pobude</h2>
             <div className="mb-3">
-              <label htmlFor="title" className="form-label">Title:</label>
+              <label htmlFor="title" className="form-label">Naslov:</label>
               <input
                 type="text"
                 id="title"
@@ -197,11 +198,11 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
                 disabled={isSubmitting}
               />
               <div id="title-help" className="form-text">
-                Enter a descriptive title for your initiative (3-100 characters)
+                Vnesite opisni naslov pobude (3–100 znakov)
               </div>
             </div>
             <div className="mb-3">
-              <label htmlFor="category" className="form-label">Category:</label>
+              <label htmlFor="category" className="form-label">Kategorija:</label>
               <select
                 id="category"
                 name="category"
@@ -212,7 +213,7 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
                 aria-describedby="category-help"
                 disabled={isSubmitting}
               >
-                <option value="">Select a category</option>
+                <option value="">Izberite kategorijo</option>
                 <option value="ceste">Ceste</option>
                 <option value="drevesa_rastje_zelene">Drevesa, rastje in zelene površine</option>
                 <option value="parki_zelene">Parki in zelenice</option>
@@ -233,14 +234,14 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
                 <option value="mirujoci_promet">Mirujoči promet</option>
                 <option value="socialno_varstvo">Socialno varstvo in zdravje</option>
                 <option value="informatika">Informatika</option>
-                <option value="other">other</option>
+                <option value="other">Drugo</option>
               </select>
               <div id="category-help" className="form-text">
-                Choose the category that best describes your initiative
+                Izberite kategorijo, ki najbolje opisuje vašo pobudo
               </div>
             </div>
             <div className="mb-3">
-              <label htmlFor="description" className="form-label">Description:</label>
+              <label htmlFor="description" className="form-label">Opis:</label>
               <textarea
                 id="description"
                 name="description"
@@ -255,23 +256,35 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
                 disabled={isSubmitting}
               ></textarea>
               <div id="description-help" className="form-text">
-                Provide a detailed description of your initiative (10-500 characters)
+                Podajte podroben opis vaše pobude (10–500 znakov)
               </div>
             </div>
             <div className="mb-3">
-              <label htmlFor="image" className="form-label">Image (optional):</label>
-              <input
-                type="file"
-                id="image"
-                name="image"
-                className="form-control"
-                onChange={(e) => setFormData(prev => ({ ...prev, image: e.target.files?.[0] || null }))}
-                accept="image/*"
-                aria-describedby="image-help"
-                disabled={isSubmitting}
-              />
+              <label htmlFor="image" className="form-label">Slika (neobvezno):</label>
+              <div className="d-flex align-items-center gap-2">
+                <input
+                  type="file"
+                  id="image"
+                  name="image"
+                  className="form-control visually-hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    setFormData(prev => ({ ...prev, image: file }));
+                    setSelectedFileName(file ? file.name : '');
+                  }}
+                  accept="image/*"
+                  aria-describedby="image-help"
+                  disabled={isSubmitting}
+                />
+                <label htmlFor="image" className="btn btn-outline-primary mb-0" aria-label="Izberi datoteko">
+                  Izberi datoteko
+                </label>
+                <span className="text-muted small" aria-live="polite">
+                  {selectedFileName || 'Datoteka ni izbrana'}
+                </span>
+              </div>
               <div id="image-help" className="form-text">
-                Upload an image to support your initiative (optional)
+                Naložite sliko, ki podpira vašo pobudo (neobvezno)
               </div>
             </div>
           </div>
@@ -279,9 +292,9 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
       case 3:
         return (
           <div className="mb-4">
-            <h2 className="mb-3">Step 3: Contact Information</h2>
+            <h2 className="mb-3">Korak 3: Kontaktni podatki</h2>
             <div className="mb-3">
-              <label htmlFor="email" className="form-label">Email:</label>
+              <label htmlFor="email" className="form-label">E-pošta:</label>
               <input
                 type="email"
                 id="email"
@@ -294,7 +307,7 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
                 disabled={isSubmitting}
               />
               <div id="email-help" className="form-text">
-                We'll use this email to contact you about your initiative
+                Ta e-poštni naslov bomo uporabili za stik v zvezi z vašo pobudo
               </div>
             </div>
           </div>
@@ -325,7 +338,7 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
 
   return (
     <div className="container-fluid h-100 py-4">
-      <form onSubmit={handleSubmit} role="form" aria-label="Initiative submission form">
+      <form onSubmit={handleSubmit} role="form" aria-label="Obrazec za oddajo pobude">
         {renderStep()}
         
         {error && (
@@ -341,9 +354,9 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
               className="btn btn-secondary"
               onClick={() => setStep(prev => prev - 1)}
               disabled={isSubmitting}
-              aria-label="Go to previous step"
+              aria-label="Pojdi na prejšnji korak"
             >
-              Previous
+              Prejšnji
             </button>
           )}
           
@@ -353,9 +366,9 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
               className="btn btn-primary ms-auto"
               onClick={() => setStep(prev => prev + 1)}
               disabled={!isStepValid() || isSubmitting}
-              aria-label="Go to next step"
+              aria-label="Pojdi na naslednji korak"
             >
-              Next
+              Naprej
             </button>
           ) : (
             <button
@@ -364,14 +377,14 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
               disabled={!isStepValid() || isSubmitting}
               aria-describedby={isSubmitting ? "submitting-status" : undefined}
             >
-              {isSubmitting ? 'Submitting...' : 'Submit Initiative'}
+              {isSubmitting ? 'Oddajanje...' : 'Oddaj pobudo'}
             </button>
           )}
         </div>
         
         {isSubmitting && (
           <div id="submitting-status" className="visually-hidden" aria-live="polite">
-            Submitting your initiative, please wait...
+            Vaša pobuda se oddaja, prosimo počakajte...
           </div>
         )}
       </form>

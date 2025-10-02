@@ -28,8 +28,12 @@ export const createPobuda = async (formData: FormData): Promise<Pobuda> => {
   return response.json();
 };
 
-export const getPobude = async (): Promise<Pobuda[]> => {
-  const response = await fetch(`${API_BASE_URL}/pobude`);
+export const getPobude = async (params?: { limit?: number; offset?: number }): Promise<Pobuda[]> => {
+  const query = new URLSearchParams();
+  if (params?.limit !== undefined) query.set('limit', String(params.limit));
+  if (params?.offset !== undefined) query.set('offset', String(params.offset));
+  const url = query.toString() ? `${API_BASE_URL}/pobude?${query}` : `${API_BASE_URL}/pobude`;
+  const response = await fetch(url);
 
   if (!response.ok) {
     throw new Error('Failed to fetch pobude');

@@ -132,7 +132,7 @@ const MapView: React.FC<MapViewProps> = ({ isSelectionMode, onLocationSelect, fo
         <div 
             style={{ height: '100%', width: '100%' }}
             role="application"
-            aria-label={isSelectionMode ? "Interactive map for selecting location" : "Map showing all initiatives"}
+            aria-label={isSelectionMode ? "Interaktivni zemljevid za izbiro lokacije" : "Zemljevid s prikazom vseh pobud"}
         >
             <MapContainer
                 center={[46.0569, 14.5058]} // Ljubljana coordinates
@@ -203,9 +203,9 @@ const MapView: React.FC<MapViewProps> = ({ isSelectionMode, onLocationSelect, fo
                     >
                         <Popup>
                             <div>
-                                <strong>Selected Location</strong><br />
-                                Lat: {selectedLocation[0].toFixed(6)}<br />
-                                Lng: {selectedLocation[1].toFixed(6)}
+                                <strong>Izbrana lokacija</strong><br />
+                                Širina: {selectedLocation[0].toFixed(6)}<br />
+                                Dolžina: {selectedLocation[1].toFixed(6)}
                             </div>
                         </Popup>
                     </Marker>
