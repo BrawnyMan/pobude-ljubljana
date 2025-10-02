@@ -2,14 +2,29 @@ import json
 import glob
 import os
 from sqlmodel import Session
-from datetime import datetime
+from datetime import datetime, timedelta
 import sys
+import random
 
 # Add the app directory to the Python path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'app'))
 
 from app.database import engine
 from app.models import Pobuda
+
+# Ljubljana coordinates bounds
+LJUBLJANA_BOUNDS = {
+    "min_lat": 46.001016,
+    "max_lat": 46.107632,
+    "min_lng": 14.411316,
+    "max_lng": 14.636532
+}
+
+def generate_random_coordinates():
+    """Generate random coordinates within Ljubljana bounds"""
+    lat = random.uniform(LJUBLJANA_BOUNDS["min_lat"], LJUBLJANA_BOUNDS["max_lat"])
+    lng = random.uniform(LJUBLJANA_BOUNDS["min_lng"], LJUBLJANA_BOUNDS["max_lng"])
+    return lat, lng
 
 def import_json_data(clear_existing=False):
     """
@@ -46,26 +61,44 @@ def import_json_data(clear_existing=False):
                     data = json.load(f)
                 
                 file_count = 0
-                for pobuda_data in data:
+                total_records = len(data)
+                unanswered_count = max(1, int(total_records * 0.1))
+                
+                # Create a list of indices to randomly select which records are unanswered
+                unanswered_indices = set(random.sample(range(total_records), unanswered_count))
+                
+                for i, pobuda_data in enumerate(data):
                     try:
+                        # Generate random coordinates within Ljubljana bounds
+                        lat, lng = generate_random_coordinates()
+                        
+                        # Determine status: 10% unanswered, 90% answered
+                        if i in unanswered_indices:
+                            status = "v obravnavi"
+                            responded_at = None
+                            response = None
+                        else:
+                            status = "odgovorjeno"
+                            # Generate random response date within last 30 days
+                            days_ago = random.randint(1, 30)
+                            responded_at = datetime.now().replace(hour=random.randint(9, 17), minute=random.randint(0, 59), second=0, microsecond=0) - timedelta(days=days_ago)
+                            response = "Hvala za vašo pobudo. Obravnavali smo jo in sprejeli ustrezne ukrepe."
+                        
                         # Prepare Pobuda object
                         pobuda = Pobuda(
                             title=pobuda_data["title"],
                             description=pobuda_data["description"],
                             location=pobuda_data["location"],
-                            latitude=pobuda_data["latitude"],
-                            longitude=pobuda_data["longitude"],
+                            latitude=lat,  # Use random coordinates
+                            longitude=lng,  # Use random coordinates
                             email=pobuda_data.get("email", ""),
                             category=pobuda_data["category"],
-                            status=pobuda_data.get("status", "v obravnavi"),
+                            status=status,
                             created_at=datetime.fromisoformat(pobuda_data["created_at"]),
-                            image_path=pobuda_data.get("image_path")
+                            image_path=pobuda_data.get("image_path"),
+                            responded_at=responded_at,
+                            response=response
                         )
-                        
-                        # If responded_at exists, add response
-                        if pobuda_data.get("responded_at"):
-                            pobuda.responded_at = datetime.fromisoformat(pobuda_data["responded_at"])
-                            pobuda.response = pobuda_data.get("response", "Hvala za vašo pobudo. Obravnavali smo jo.")
                         
                         session.add(pobuda)
                         file_count += 1
@@ -76,7 +109,9 @@ def import_json_data(clear_existing=False):
                 
                 session.commit()
                 total_imported += file_count
+                answered_count = file_count - unanswered_count
                 print(f"✅ Imported {file_count} records from {os.path.basename(file_path)}")
+                print(f"   📊 Status breakdown: {unanswered_count} unanswered, {answered_count} answered")
                 
             except Exception as e:
                 print(f"❌ Error reading file {file_path}: {str(e)}")

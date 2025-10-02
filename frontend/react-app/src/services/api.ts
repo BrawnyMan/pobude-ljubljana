@@ -31,10 +31,13 @@ export const createPobuda = async (formData: FormData): Promise<Pobuda> => {
   return response.json();
 };
 
-export const getPobude = async (params?: { limit?: number; offset?: number }): Promise<Pobuda[]> => {
+export const getPobude = async (params?: { limit?: number; offset?: number; category?: string; status?: string; search?: string }): Promise<Pobuda[]> => {
   const query = new URLSearchParams();
   if (params?.limit !== undefined) query.set('limit', String(params.limit));
   if (params?.offset !== undefined) query.set('offset', String(params.offset));
+  if (params?.category !== undefined && params.category !== 'all') query.set('category', params.category);
+  if (params?.status !== undefined && params.status !== 'all') query.set('status', params.status);
+  if (params?.search !== undefined && params.search.trim() !== '') query.set('search', params.search.trim());
   const url = query.toString() ? `${API_BASE_URL}/pobude?${query}` : `${API_BASE_URL}/pobude`;
   const response = await fetch(url);
 

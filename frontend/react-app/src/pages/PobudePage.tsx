@@ -9,6 +9,7 @@ const PobudePage = () => {
     const [selectedPobuda, setSelectedPobuda] = useState<Pobuda | null>(null);
     const [isInitialLoading, setIsInitialLoading] = useState(true);
     const [isFetchingMore, setIsFetchingMore] = useState(false);
+    const [isSearching, setIsSearching] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [focusLocation, setFocusLocation] = useState<[number, number] | null>(null);
     const [pageSize, setPageSize] = useState<number>(20);
@@ -56,7 +57,40 @@ const PobudePage = () => {
 
     useEffect(() => {
         filterAndSortPobude();
-    }, [pobude, searchTerm, statusFilter, categoryFilter, sortOrder]);
+    }, [pobude, statusFilter, categoryFilter, sortOrder]);
+
+    // Reset data when category filter changes
+    useEffect(() => {
+        setOffset(0);
+        setPobude([]);
+        setHasMore(true);
+        setNoResults(false);
+        setAutoFillFetches(0);
+        fetchNextPage(true);
+    }, [categoryFilter]);
+
+    // Reset data when status filter changes
+    useEffect(() => {
+        setOffset(0);
+        setPobude([]);
+        setHasMore(true);
+        setNoResults(false);
+        setAutoFillFetches(0);
+        fetchNextPage(true);
+    }, [statusFilter]);
+
+    // Debounced search - wait 300ms after user stops typing
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            if (searchTerm.trim() !== '') {
+                setIsSearching(true);
+            }
+            // Just trigger a new fetch with the search parameter, don't reset everything
+            fetchNextPage(true);
+        }, 300);
+
+        return () => clearTimeout(timeoutId);
+    }, [searchTerm]);
 
     // Handle ESC key to close modal
     useEffect(() => {
@@ -85,44 +119,52 @@ const PobudePage = () => {
             } else {
                 setIsFetchingMore(true);
             }
-            const nextOffset = reset ? 0 : offset;
-            const data = await getPobude({ limit: pageSize, offset: nextOffset });
-            if (reset) {
+            
+            // If status is "v obravnavi" (unanswered), load all of them at once
+            if (statusFilter === 'v obravnavi') {
+                const data = await getPobude({ 
+                    category: categoryFilter !== 'all' ? categoryFilter : undefined,
+                    status: 'v obravnavi',
+                    search: searchTerm.trim() !== '' ? searchTerm.trim() : undefined
+                    // No limit/offset - load all
+                });
                 setPobude(data);
                 setOffset(data.length);
+                setHasMore(false); // No more data to load
             } else {
-                setPobude(prev => [...prev, ...data]);
-                setOffset(prev => prev + data.length);
+                // For other statuses, use pagination
+                const nextOffset = reset ? 0 : offset;
+                const data = await getPobude({ 
+                    limit: pageSize, 
+                    offset: nextOffset, 
+                    category: categoryFilter !== 'all' ? categoryFilter : undefined,
+                    status: statusFilter !== 'all' ? statusFilter : undefined,
+                    search: searchTerm.trim() !== '' ? searchTerm.trim() : undefined
+                });
+                if (reset) {
+                    setPobude(data);
+                    setOffset(data.length);
+                } else {
+                    setPobude(prev => [...prev, ...data]);
+                    setOffset(prev => prev + data.length);
+                }
+                setHasMore(data.length === pageSize);
             }
-            setHasMore(data.length === pageSize);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to fetch pobude');
         } finally {
             setIsInitialLoading(false);
             setIsFetchingMore(false);
+            setIsSearching(false);
             isFetchingRef.current = false;
         }
-    }, [offset, pageSize]);
+    }, [offset, pageSize, categoryFilter, statusFilter, searchTerm]);
 
     const filterAndSortPobude = () => {
         let filtered = [...pobude];
 
-        // Apply search filter
-        if (searchTerm) {
-            filtered = filtered.filter(pobuda =>
-                pobuda.title.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-        }
-
-        // Apply status filter
-        if (statusFilter !== 'all') {
-            filtered = filtered.filter(pobuda => pobuda.status === statusFilter);
-        }
-
-        // Apply category filter (matches exact category text)
-        if (categoryFilter !== 'all') {
-            filtered = filtered.filter(pobuda => pobuda.category === categoryFilter);
-        }
+        // Search, status, and category filtering is now handled on the backend
+        // Only apply client-side sorting and other non-backend filters
 
         // Sort by date
         filtered.sort((a, b) => {
@@ -219,6 +261,13 @@ const PobudePage = () => {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 aria-label="Iskanje pobud po naslovu"
                             />
+                            {isSearching && (
+                                <span className="input-group-text">
+                                    <div className="spinner-border spinner-border-sm" role="status" aria-label="Iskanje...">
+                                        <span className="visually-hidden">Iskanje...</span>
+                                    </div>
+                                </span>
+                            )}
                         </div>
                         <div className="row g-2">
                             <div className="col-12 col-md-6">
@@ -335,7 +384,7 @@ const PobudePage = () => {
                             </div>
                         </div>
                     )}
-                    {!hasMore && (
+                    {!hasMore && !searchTerm.trim() && (
                         <div className="text-center text-muted mt-2"><small>Ni več rezultatov.</small></div>
                     )}
                 </div>

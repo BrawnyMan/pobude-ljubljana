@@ -1796,9 +1796,14 @@ def generate_random_pobude():
         
         # Add random pobude
         for pobuda_data in RANDOM_POBUDE_DATA:
+            # Create a copy to avoid modifying the original data
+            pobuda_data_copy = pobuda_data.copy()
+            
             # Add some randomness to status (some responded, some pending)
             if random.random() < 0.3:  # 30% chance to be responded
-                pobuda_data["status"] = "odgovorjeno"
+                pobuda_data_copy["status"] = "odgovorjeno"
+            else:
+                pobuda_data_copy["status"] = "v obravnavi"
             
             # Add random coordinates within Ljubljana
             latitude = 46.0569 + random.uniform(-0.01, 0.01)
@@ -1808,14 +1813,14 @@ def generate_random_pobude():
             email = f"citizen{random.randint(1, 999)}@ljubljana.si"
             
             pobuda = Pobuda(
-                title=pobuda_data["title"],
-                description=pobuda_data["description"],
-                location=pobuda_data["location"],
+                title=pobuda_data_copy["title"],
+                description=pobuda_data_copy["description"],
+                location=pobuda_data_copy["location"],
                 latitude=latitude,
                 longitude=longitude,
                 email=email,
-                category=pobuda_data["category"],
-                status=pobuda_data["status"],
+                category=pobuda_data_copy["category"],
+                status=pobuda_data_copy["status"],
                 created_at=datetime.utcnow() - timedelta(days=random.randint(1, 180))
             )
             
@@ -1878,23 +1883,54 @@ def get_pobuda(pobuda_id: int):
         return pobuda
 
 @router.get("/api/pobude", response_model=List[Pobuda])
-def get_pobude(limit: Optional[int] = Query(default=None, ge=1, le=100), offset: Optional[int] = Query(default=None, ge=0)):
+def get_pobude(
+    limit: Optional[int] = Query(default=None, ge=1, le=100), 
+    offset: Optional[int] = Query(default=None, ge=0),
+    category: Optional[str] = Query(default=None),
+    status: Optional[str] = Query(default=None),
+    search: Optional[str] = Query(default=None)
+):
     with Session(engine) as session:
-        # If no pagination params are provided, preserve previous behavior (return all)
+        # Build the base query
+        statement = select(Pobuda)
+        
+        # Add category filter if provided
+        if category and category != "all":
+            statement = statement.where(Pobuda.category == category)
+        
+        # Add status filter if provided
+        if status and status != "all":
+            statement = statement.where(Pobuda.status == status)
+        
+        # Add search filter if provided
+        if search and search.strip():
+            search_term = f"%{search.strip()}%"
+            statement = statement.where(
+                (Pobuda.title.ilike(search_term)) |
+                (Pobuda.description.ilike(search_term)) |
+                (Pobuda.location.ilike(search_term))
+            )
+        
+        # Order by creation date (newest first)
+        statement = statement.order_by(Pobuda.created_at.desc())
+        
+        # If no pagination params are provided
         if limit is None and offset is None:
-            pobude = session.exec(select(Pobuda)).all()
-            return pobude
+            # If filtering by unanswered status, return all of them
+            if status and status == "v obravnavi":
+                pobude = session.exec(statement).all()
+                return pobude
+            else:
+                # For other cases, return 800 newest pobude for map display
+                statement = statement.limit(800)
+                pobude = session.exec(statement).all()
+                return pobude
 
-        # Apply sensible defaults when only one of the params is provided
+        # Apply pagination
         effective_limit = limit if limit is not None else 10
         effective_offset = offset if offset is not None else 0
-
-        statement = (
-            select(Pobuda)
-            .order_by(Pobuda.created_at.desc())
-            .offset(effective_offset)
-            .limit(effective_limit)
-        )
+        
+        statement = statement.offset(effective_offset).limit(effective_limit)
         pobude = session.exec(statement).all()
         return pobude
 
@@ -1936,6 +1972,63 @@ def ai_prioritize_initiatives(initiatives: List[Pobuda]):
     # Sort by priority score descending
     prioritized.sort(key=lambda x: x["priority_score"], reverse=True)
     return prioritized
+
+@router.post("/api/admin/get-categories")
+def get_categories_for_pobude(initiatives: List[Pobuda]):
+    """Get AI-generated categories for all provided pobude"""
+    if not initiatives:
+        return []
+    
+    try:
+        import requests
+        
+        print(f"🤖 Getting categories for {len(initiatives)} pobude with ChatGPT...")
+        
+        # Call the ChatGPT category endpoint for each pobuda
+        categorized = []
+        for initiative in initiatives:
+            try:
+                response = requests.post(
+                    "http://localhost:8000/api/chatgpt/get-category",
+                    json={
+                        "title": initiative.title,
+                        "description": initiative.description
+                    },
+                    headers={"Content-Type": "application/json"}
+                )
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    categorized.append({
+                        **initiative.dict(),
+                        "ai_category": result["category"]
+                    })
+                else:
+                    categorized.append({
+                        **initiative.dict(),
+                        "ai_category": "other"
+                    })
+            except Exception as e:
+                categorized.append({
+                    **initiative.dict(),
+                    "ai_category": "other"
+                })
+        
+        print(f"✅ Category analysis completed for {len(categorized)} pobude")
+        return categorized
+        
+    except Exception as e:
+        print(f"❌ Category analysis failed: {e}")
+        
+        # Fallback to default categories
+        categorized = []
+        for initiative in initiatives:
+            categorized.append({
+                **initiative.dict(),
+                "ai_category": "other"
+            })
+        
+        return categorized
 
 @router.get("/api/admin/statistics", response_model=Statistics)
 def get_statistics():

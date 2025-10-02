@@ -41,6 +41,7 @@ const AdminPage = () => {
   const [response, setResponse] = useState('');
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<'all' | 'v obravnavi' | 'odgovorjeno'>('v obravnavi');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -63,12 +64,45 @@ const AdminPage = () => {
 
   useEffect(() => {
     filterPobude();
-  }, [pobude, statusFilter, categoryFilter, searchTerm, importanceMap, sortOrder]);
+  }, [pobude, statusFilter, categoryFilter, importanceMap, sortOrder]);
 
   // Reset auto-fill when filters change
   useEffect(() => {
     setAutoFillFetches(0);
   }, [searchTerm, statusFilter, categoryFilter]);
+
+  // Reset data when category filter changes
+  useEffect(() => {
+    setOffset(0);
+    setPobude([]);
+    setHasMore(true);
+    setNoResults(false);
+    setAutoFillFetches(0);
+    fetchNextPage(true);
+  }, [categoryFilter]);
+
+  // Reset data when status filter changes
+  useEffect(() => {
+    setOffset(0);
+    setPobude([]);
+    setHasMore(true);
+    setNoResults(false);
+    setAutoFillFetches(0);
+    fetchNextPage(true);
+  }, [statusFilter]);
+
+  // Debounced search - wait 300ms after user stops typing
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchTerm.trim() !== '') {
+        setIsSearching(true);
+      }
+      // Just trigger a new fetch with the search parameter, don't reset everything
+      fetchNextPage(true);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm]);
 
   // Handle ESC key to close modal
   useEffect(() => {
@@ -99,48 +133,60 @@ const AdminPage = () => {
       } else {
         setIsFetchingMore(true);
       }
-      const nextOffset = reset ? 0 : offset;
-      const [pobudeData, statsData] = await Promise.all([
-        getPobude({ limit: pageSize, offset: nextOffset }),
-        fetch(`${API_BASE_URL}/admin/statistics`).then(res => res.json())
-      ]);
-      if (reset) {
+      
+      // If status is "v obravnavi" (unanswered), load all of them at once
+      if (statusFilter === 'v obravnavi') {
+        const [pobudeData, statsData] = await Promise.all([
+          getPobude({ 
+            category: categoryFilter !== 'all' ? categoryFilter : undefined,
+            status: 'v obravnavi',
+            search: searchTerm.trim() !== '' ? searchTerm.trim() : undefined
+            // No limit/offset - load all
+          }),
+          fetch(`${API_BASE_URL}/admin/statistics`).then(res => res.json())
+        ]);
         setPobude(pobudeData);
         setOffset(pobudeData.length);
+        setStatistics(statsData);
+        setHasMore(false); // No more data to load
       } else {
-        setPobude(prev => [...prev, ...pobudeData]);
-        setOffset(prev => prev + pobudeData.length);
+        // For other statuses, use pagination
+        const nextOffset = reset ? 0 : offset;
+        const [pobudeData, statsData] = await Promise.all([
+          getPobude({ 
+            limit: pageSize, 
+            offset: nextOffset, 
+            category: categoryFilter !== 'all' ? categoryFilter : undefined,
+            status: statusFilter !== 'all' ? statusFilter : undefined,
+            search: searchTerm.trim() !== '' ? searchTerm.trim() : undefined
+          }),
+          fetch(`${API_BASE_URL}/admin/statistics`).then(res => res.json())
+        ]);
+        if (reset) {
+          setPobude(pobudeData);
+          setOffset(pobudeData.length);
+        } else {
+          setPobude(prev => [...prev, ...pobudeData]);
+          setOffset(prev => prev + pobudeData.length);
+        }
+        setStatistics(statsData);
+        setHasMore(pobudeData.length === pageSize);
       }
-      setStatistics(statsData);
-      setHasMore(pobudeData.length === pageSize);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Napaka pri pridobivanju podatkov');
     } finally {
       setIsInitialLoading(false);
       setIsFetchingMore(false);
+      setIsSearching(false);
       isFetchingRef.current = false;
     }
-  }, [offset, pageSize]);
+  }, [offset, pageSize, categoryFilter, statusFilter, searchTerm]);
 
   const filterPobude = () => {
     let filtered = [...pobude];
 
-    // Apply search filter
-    if (searchTerm) {
-      filtered = filtered.filter(pobuda =>
-        pobuda.title.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(pobuda => pobuda.status === statusFilter);
-    }
-
-    // Apply category filter
-    if (categoryFilter !== 'all') {
-      filtered = filtered.filter(pobuda => pobuda.category === categoryFilter);
-    }
+    // Search, status, and category filtering is now handled on the backend
+    // Only apply client-side sorting and other non-backend filters
 
     // Apply importance sorting if available
     if (Object.keys(importanceMap).length > 0) {
@@ -337,14 +383,23 @@ const AdminPage = () => {
         <div className="card-body">
           <div className="mb-3">
             <label htmlFor="search-pobude" className="form-label">Išči po naslovu:</label>
-            <input
-              type="text"
-              id="search-pobude"
-              className="form-control"
-              placeholder="Išči po naslovu..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+            <div className="input-group">
+              <input
+                type="text"
+                id="search-pobude"
+                className="form-control"
+                placeholder="Išči po naslovu..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              {isSearching && (
+                <span className="input-group-text">
+                  <div className="spinner-border spinner-border-sm" role="status" aria-label="Iskanje...">
+                    <span className="visually-hidden">Iskanje...</span>
+                  </div>
+                </span>
+              )}
+            </div>
           </div>
           <div className="row g-2">
             <div className="col-12 col-md-4">
@@ -503,7 +558,7 @@ const AdminPage = () => {
           {noResults && (
             <div className="text-center text-muted mt-2"><small>Ni najdenih pobud za izbrane filtre.</small></div>
           )}
-          {!hasMore && !noResults && (
+          {!hasMore && !noResults && !searchTerm.trim() && (
             <div className="text-center text-muted mt-2"><small>Ni več rezultatov.</small></div>
           )}
         </div>
