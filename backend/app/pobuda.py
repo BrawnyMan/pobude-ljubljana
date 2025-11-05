@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, File, UploadFile, Form, Query
+from fastapi import APIRouter, HTTPException, File, UploadFile, Form, Query, Depends
 from sqlmodel import Session, select
 from datetime import datetime, timedelta
 from collections import defaultdict
@@ -7,6 +7,7 @@ import os, shutil
 import random
 from .models import Pobuda, PobudaCreate, PobudaResponse, Statistics
 from .database import engine
+from .auth import verify_token
 
 UPLOAD_DIR = "uploads"
 
@@ -1923,7 +1924,7 @@ def get_pobude(
         return pobude
 
 @router.put("/api/pobude/{pobuda_id}/respond", response_model=Pobuda)
-def respond_to_pobuda(pobuda_id: int, response_data: PobudaResponse):
+def respond_to_pobuda(pobuda_id: int, response_data: PobudaResponse, token: str = Depends(verify_token)):
     with Session(engine) as session:
         pobuda = session.get(Pobuda, pobuda_id)
         if not pobuda:
@@ -1943,7 +1944,7 @@ def search_streets(q: str = Query(..., min_length=2), limit: int = Query(20, ge=
     return matches[:limit]
 
 @router.post("/api/admin/ai-prioritize")
-def ai_prioritize_initiatives(initiatives: List[Pobuda]):
+def ai_prioritize_initiatives(initiatives: List[Pobuda], token: str = Depends(verify_token)):
     from .chatgpt_service import prioritize_pobude_list_structured
     
     try:
@@ -1973,7 +1974,7 @@ def ai_prioritize_initiatives(initiatives: List[Pobuda]):
         raise HTTPException(status_code=500, detail=f"Error processing AI prioritization: {str(e)}")
 
 @router.get("/api/admin/statistics", response_model=Statistics)
-def get_statistics():
+def get_statistics(token: str = Depends(verify_token)):
     with Session(engine) as session:
         pobude = session.exec(select(Pobuda)).all()
         total_pobude = len(pobude)

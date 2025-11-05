@@ -30,7 +30,7 @@ const focusStyles = `
 
 const Header: React.FC = () => {
     const navigate = useNavigate();
-    const isLoggedIn = localStorage.getItem('admin_token') === 'dummy-admin-token';
+    const isLoggedIn = localStorage.getItem('admin_token') !== null;
 
     
     useEffect(() => {

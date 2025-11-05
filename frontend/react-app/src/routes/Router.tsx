@@ -9,7 +9,7 @@ import PomocPage from '../pages/PomocPage';
 import StatisticsPage from '../pages/StatisticsPage';
 
 const RequireAuth = ({ children }: { children: React.ReactNode }) => {
-    const isLoggedIn = localStorage.getItem('admin_token') === 'dummy-admin-token';
+    const isLoggedIn = localStorage.getItem('admin_token') !== null;
     return isLoggedIn ? children : <Navigate to="/login" replace />;
 };
 

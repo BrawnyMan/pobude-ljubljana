@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { getPobude, Pobuda } from '../services/api';
+import { authenticatedFetch } from '../services/auth';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -30,8 +31,6 @@ interface Statistics {
   daily_stats: Array<{ date: string; count: number }>;
   response_stats: Array<{ date: string; count: number }>;
 }
-
-const API_BASE_URL = (import.meta as any).env.VITE_API_URL;
 
 const AdminPage = () => {
   const [pobude, setPobude] = useState<Pobuda[]>([]);
@@ -143,7 +142,7 @@ const AdminPage = () => {
             search: searchTerm.trim() !== '' ? searchTerm.trim() : undefined
             
           }),
-          fetch(`${API_BASE_URL}/admin/statistics`).then(res => res.json())
+          authenticatedFetch('/admin/statistics').then(res => res.json())
         ]);
         setPobude(pobudeData);
         setOffset(pobudeData.length);
@@ -160,7 +159,7 @@ const AdminPage = () => {
             status: statusFilter !== 'all' ? statusFilter : undefined,
             search: searchTerm.trim() !== '' ? searchTerm.trim() : undefined
           }),
-          fetch(`${API_BASE_URL}/admin/statistics`).then(res => res.json())
+          authenticatedFetch('/admin/statistics').then(res => res.json())
         ]);
         if (reset) {
           setPobude(pobudeData);
@@ -173,7 +172,10 @@ const AdminPage = () => {
         setHasMore(pobudeData.length === pageSize);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Napaka pri pridobivanju podatkov');
+      // Don't set error if it's an auth error (redirect will happen)
+      if (err instanceof Error && err.message !== 'Authentication failed' && err.message !== 'No authentication token') {
+        setError(err.message || 'Napaka pri pridobivanju podatkov');
+      }
     } finally {
       setIsInitialLoading(false);
       setIsFetchingMore(false);
@@ -233,11 +235,8 @@ const AdminPage = () => {
 
   const handleRespond = async (pobudaId: number) => {
     try {
-      const responseData = await fetch(`${API_BASE_URL}/pobude/${pobudaId}/respond`, {
+      const responseData = await authenticatedFetch(`/pobude/${pobudaId}/respond`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ response }),
       });
 
@@ -250,15 +249,17 @@ const AdminPage = () => {
       setSelectedPobuda(null);
       setResponse('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Napaka pri oddaji odgovora');
+      // Don't set error if it's an auth error (redirect will happen)
+      if (err instanceof Error && err.message !== 'Authentication failed' && err.message !== 'No authentication token') {
+        setError(err.message || 'Napaka pri oddaji odgovora');
+      }
     }
   };
 
   const handleAiSort = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/admin/ai-prioritize`, {
+      const res = await authenticatedFetch('/admin/ai-prioritize', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(pobude)
       });
       
@@ -276,8 +277,11 @@ const AdminPage = () => {
         setImportanceMap(newMap);
       }
     } catch (err) {
-      console.error('AI prioritization error:', err);
-      alert('Napaka pri AI analizi pobud');
+      // Don't show alert if it's an auth error (redirect will happen)
+      if (err instanceof Error && err.message !== 'Authentication failed' && err.message !== 'No authentication token') {
+        console.error('AI prioritization error:', err);
+        alert('Napaka pri AI analizi pobud');
+      }
     }
   };
 
@@ -557,7 +561,7 @@ const AdminPage = () => {
           {noResults && (
             <div className="text-center text-muted mt-2"><small>Ni najdenih pobud za izbrane filtre.</small></div>
           )}
-          {!hasMore && !noResults && !searchTerm.trim() && (
+          {!hasMore && !noResults && !searchTerm.trim() && statusFilter !== 'v obravnavi' && (
             <div className="text-center text-muted mt-2"><small>Ni več rezultatov.</small></div>
           )}
         </div>

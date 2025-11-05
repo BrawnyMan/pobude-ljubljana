@@ -56,7 +56,7 @@ const focusStyles = `
 
 const Navbar: React.FC = () => {
     const navigate = useNavigate();
-    const isLoggedIn = localStorage.getItem('admin_token') === 'dummy-admin-token';
+    const isLoggedIn = localStorage.getItem('admin_token') !== null;
 
     
     useEffect(() => {
