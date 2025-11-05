@@ -24,7 +24,15 @@ Go to the backend folder:
 cd ./backend
 ```
 
-▶️ Run the Server
+### ⚙️ Environment Variables
+
+The backend requires a .env file in the ./backend directory.
+Create a file named .env with the following structure (adjust values as needed):
+```bash
+OPENAI_API_KEY=sk-proj-ziyo_IyTCDB174vZ...
+```
+
+### ▶️ Run the Server
 
 You can start the FastAPI backend using either script:
 On Linux / macOS / Git Bash
@@ -45,18 +53,26 @@ The script will automatically:
     👉 http://127.0.0.1:8000
 
 ## 🌐 Frontend Setup
-## 📁 Location
+### 📁 Location
 Go to the React frontend folder:
 ```bash
 cd ./frontend/react-app
 ```
-📦 Install Dependencies
+### ⚙️ Environment Variables
+
+The frontend also requires a .env file in the ./frontend/react-app directory.
+Create a file named .env with the following content (adjust if your backend URL differs):
+```bash
+VITE_API_URL=http://localhost:8000/api
+```
+
+### 📦 Install Dependencies
 
 Install all required npm packages:
 ```bahs
 npm install
 ```
-▶️ Run the Development Server
+### ▶️ Run the Development Server
 
 Start the frontend with:
 ```bash
@@ -64,11 +80,11 @@ npm run dev
 ```
 The app will start on 👉 http://localhost:5173 (or whichever port Vite selects).
 
-🧠 Notes
+### 🧠 Notes
 
     The backend runs on FastAPI + SQLModel + Uvicorn
 
     The frontend runs on React + Vite
 
-💡 Tip:
+### 💡 Tip:
 You can have both backend and frontend running simultaneously — open two terminals, one for each.
