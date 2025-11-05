@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from enum import Enum
 
 class CategoryEnum(str, Enum):
-    # Main categories from the actual data
+    
     ceste = "Ceste"
     drevesa_rastje_zelene = "Drevesa, rastje in zelene površine"
     parki_zelene = "Parki in zelenice"

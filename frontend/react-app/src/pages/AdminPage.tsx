@@ -271,7 +271,7 @@ const AdminPage = () => {
         // Create importance map from API response
         const newMap: { [id: number]: number } = {};
         data.forEach((p: any) => {
-          newMap[p.id] = p.priority_score;
+          newMap[p.id] = p.nujnost;
         });
         setImportanceMap(newMap);
       }
@@ -284,7 +284,6 @@ const AdminPage = () => {
   const handleSortToggle = () => {
     setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
   };
-
 
   const chartOptions = {
     responsive: true,
@@ -515,7 +514,7 @@ const AdminPage = () => {
                                 boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
                                 border: '2px solid #fff',
                               }}
-                              title="Simulated importance (ChatGPT)"
+                              title="Nujnost pobude (AI)"
                               aria-label={ariaLabel}
                               role="img"
                             >

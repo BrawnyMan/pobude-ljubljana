@@ -6,13 +6,11 @@ from datetime import datetime, timedelta
 import sys
 import random
 
-# Add the app directory to the Python path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'app'))
 
 from app.database import engine
 from app.models import Pobuda
 
-# Ljubljana coordinates bounds
 LJUBLJANA_BOUNDS = {
     "min_lat": 46.001016,
     "max_lat": 46.107632,
@@ -33,7 +31,7 @@ def import_json_data(clear_existing=False):
     Args:
         clear_existing (bool): If True, clear existing data before import
     """
-    # Path to JSON files (relative to the backend directory)
+    
     json_files = glob.glob("../data/*_converted.json")
     
     if not json_files:
@@ -64,33 +62,33 @@ def import_json_data(clear_existing=False):
                 total_records = len(data)
                 unanswered_count = max(1, int(total_records * 0.1))
                 
-                # Create a list of indices to randomly select which records are unanswered
+                
                 unanswered_indices = set(random.sample(range(total_records), unanswered_count))
                 
                 for i, pobuda_data in enumerate(data):
                     try:
-                        # Generate random coordinates within Ljubljana bounds
+                        
                         lat, lng = generate_random_coordinates()
                         
-                        # Determine status: 10% unanswered, 90% answered
+                        
                         if i in unanswered_indices:
                             status = "v obravnavi"
                             responded_at = None
                             response = None
                         else:
                             status = "odgovorjeno"
-                            # Generate random response date within last 30 days
+                            
                             days_ago = random.randint(1, 30)
                             responded_at = datetime.now().replace(hour=random.randint(9, 17), minute=random.randint(0, 59), second=0, microsecond=0) - timedelta(days=days_ago)
                             response = "Hvala za vašo pobudo. Obravnavali smo jo in sprejeli ustrezne ukrepe."
                         
-                        # Prepare Pobuda object
+                        
                         pobuda = Pobuda(
                             title=pobuda_data["title"],
                             description=pobuda_data["description"],
                             location=pobuda_data["location"],
-                            latitude=lat,  # Use random coordinates
-                            longitude=lng,  # Use random coordinates
+                            latitude=lat,  
+                            longitude=lng,  
                             email=pobuda_data.get("email", ""),
                             category=pobuda_data["category"],
                             status=status,

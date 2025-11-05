@@ -10,7 +10,6 @@ from .database import engine
 
 UPLOAD_DIR = "uploads"
 
-# Ljubljana streets list - expand as needed
 LJUBLJANA_STREETS = [
     "Abramova Ulica",
     "Adamičeva Ulica",
@@ -1587,15 +1586,13 @@ LJUBLJANA_STREETS = [
     "Župančičeva Ulica"
 ]
 
-# Ljubljana locations for random data
 LJUBLJANA_LOCATIONS = [
     "Ljubljana Center", "Bežigrad", "Šiška", "Vič", "Moste",
     "Sostro", "Šentvid", "Rožnik", "Trnovo", "Polje"
 ]
 
-# Random pobude data with realistic Ljubljana problems - 150 entries
 RANDOM_POBUDE_DATA = [
-    # Ceste - High volume, low response rate (problematic) - 40 entries
+    
     {"title": "Broken sidewalk on Prešernova cesta", "description": "Large hole in sidewalk causing safety hazard", "category": "Ceste", "location": "Ljubljana Center", "status": "v obravnavi"},
     {"title": "Street light not working on Miklošičeva", "description": "Dark area at night, safety concern", "category": "Ceste", "location": "Ljubljana Center", "status": "v obravnavi"},
     {"title": "Damaged road surface on Celovška cesta", "description": "Potholes causing traffic issues", "category": "Ceste", "location": "Bežigrad", "status": "v obravnavi"},
@@ -1644,7 +1641,7 @@ RANDOM_POBUDE_DATA = [
     {"title": "Broken bus stop roof", "description": "Roof leaking", "category": "Avtobusna postajališča", "location": "Šentvid", "status": "v obravnavi"},
     {"title": "Damaged street light cover", "description": "Cover missing, exposed wiring", "category": "Ceste", "location": "Polje", "status": "v obravnavi"},
     
-    # LPP - Medium volume, medium response rate - 30 entries
+    
     {"title": "Bus schedule issues on route 1", "description": "Buses frequently late", "category": "LPP", "location": "Ljubljana Center", "status": "odgovorjeno"},
     {"title": "Parking problems in city center", "description": "No available parking spaces", "category": "Mirujoči promet", "location": "Ljubljana Center", "status": "v obravnavi"},
     {"title": "Bike lane blocked by construction", "description": "Cyclists forced onto road", "category": "Kolesarske poti", "location": "Bežigrad", "status": "odgovorjeno"},
@@ -1680,7 +1677,7 @@ RANDOM_POBUDE_DATA = [
     {"title": "Bike lane continuity", "description": "Lane ends abruptly", "category": "Kolesarske poti", "location": "Moste", "status": "v obravnavi"},
     {"title": "Public transport integration", "description": "Poor connection between modes", "category": "LPP", "location": "Sostro", "status": "odgovorjeno"},
     
-    # Drevesa, rastje in zelene površine - High volume, high response rate (good) - 35 entries
+    
     {"title": "Tree planting in neighborhood", "description": "More trees needed for shade", "category": "Drevesa, rastje in zelene površine", "location": "Ljubljana Center", "status": "odgovorjeno"},
     {"title": "Recycling bin placement", "description": "More recycling bins needed", "category": "Razno", "location": "Bežigrad", "status": "odgovorjeno"},
     {"title": "Green space maintenance", "description": "Park needs better care", "category": "Parki in zelenice", "location": "Šiška", "status": "odgovorjeno"},
@@ -1718,7 +1715,7 @@ RANDOM_POBUDE_DATA = [
     {"title": "Green space connectivity", "description": "Connect parks and gardens", "category": "Parki in zelenice", "location": "Polje", "status": "odgovorjeno"},
     {"title": "Climate action plan", "description": "Local climate initiatives", "category": "Razno", "location": "Rožnik", "status": "odgovorjeno"},
     
-    # Kultura - Medium volume, high response rate - 20 entries
+    
     {"title": "Public art installation", "description": "New sculpture in park", "category": "Kultura", "location": "Ljubljana Center", "status": "odgovorjeno"},
     {"title": "Cultural festival organization", "description": "Annual neighborhood festival", "category": "Kultura", "location": "Bežigrad", "status": "odgovorjeno"},
     {"title": "Library hours extension", "description": "Longer opening hours", "category": "Razno", "location": "Šiška", "status": "odgovorjeno"},
@@ -1741,7 +1738,7 @@ RANDOM_POBUDE_DATA = [
     {"title": "Traditional craft preservation", "description": "Support local artisans", "category": "Kultura", "location": "Bežigrad", "status": "odgovorjeno"},
     {"title": "Cultural performance venues", "description": "More performance spaces", "category": "Kultura", "location": "Šiška", "status": "odgovorjeno"},
     
-    # Razno - Low volume, high response rate - 10 entries
+    
     {"title": "School playground upgrade", "description": "Better playground equipment", "category": "Športne površine", "location": "Bežigrad", "status": "odgovorjeno"},
     {"title": "Library book collection", "description": "More books for children", "category": "Razno", "location": "Šiška", "status": "odgovorjeno"},
     {"title": "Computer lab improvement", "description": "New computers for students", "category": "Informatika", "location": "Vič", "status": "odgovorjeno"},
@@ -1753,7 +1750,7 @@ RANDOM_POBUDE_DATA = [
     {"title": "STEM education facilities", "description": "Science and technology labs", "category": "Informatika", "location": "Ljubljana Center", "status": "odgovorjeno"},
     {"title": "Creative arts education", "description": "Art and music programs", "category": "Kultura", "location": "Bežigrad", "status": "odgovorjeno"},
     
-    # Socialno varstvo in zdravje - Low volume, medium response rate - 10 entries
+    
     {"title": "Sports facility upgrade", "description": "Better gym equipment", "category": "Športne površine", "location": "Šentvid", "status": "odgovorjeno"},
     {"title": "Walking path creation", "description": "New walking trails", "category": "Pešpoti in pločniki", "location": "Polje", "status": "v obravnavi"},
     {"title": "Fitness equipment installation", "description": "Outdoor gym equipment", "category": "Športne površine", "location": "Rožnik", "status": "odgovorjeno"},
@@ -1765,7 +1762,7 @@ RANDOM_POBUDE_DATA = [
     {"title": "Nutrition education", "description": "Healthy eating workshops", "category": "Socialno varstvo in zdravje", "location": "Sostro", "status": "v obravnavi"},
     {"title": "Preventive health programs", "description": "Health screening services", "category": "Socialno varstvo in zdravje", "location": "Šentvid", "status": "odgovorjeno"},
     
-    # Javni red in mir - Medium volume, low response rate (problematic) - 10 entries
+    
     {"title": "Street lighting improvement", "description": "Better lighting for safety", "category": "Ceste", "location": "Šiška", "status": "v obravnavi"},
     {"title": "Security camera installation", "description": "Cameras for crime prevention", "category": "Javni red in mir", "location": "Vič", "status": "v obravnavi"},
     {"title": "Emergency response time", "description": "Faster emergency services", "category": "Javni red in mir", "location": "Moste", "status": "v obravnavi"},
@@ -1777,7 +1774,7 @@ RANDOM_POBUDE_DATA = [
     {"title": "School safety upgrade", "description": "Better school security", "category": "Javni red in mir", "location": "Bežigrad", "status": "v obravnavi"},
     {"title": "Public safety awareness", "description": "Safety education programs", "category": "Javni red in mir", "location": "Šiška", "status": "v obravnavi"},
     
-    # Other - Low volume, mixed response rate - 5 entries
+    
     {"title": "WiFi in public spaces", "description": "Free WiFi in parks", "category": "Informatika", "location": "Vič", "status": "odgovorjeno"},
     {"title": "Public restroom maintenance", "description": "Better restroom facilities", "category": "Razno", "location": "Moste", "status": "v obravnavi"},
     {"title": "Information kiosk installation", "description": "Tourist information points", "category": "Razno", "location": "Sostro", "status": "odgovorjeno"},
@@ -1788,28 +1785,28 @@ RANDOM_POBUDE_DATA = [
 def generate_random_pobude():
     """Generate random pobude data with realistic Ljubljana problems"""
     with Session(engine) as session:
-        # Clear existing data
+        
         pobude_to_delete = session.exec(select(Pobuda)).all()
         for pobuda in pobude_to_delete:
             session.delete(pobuda)
         session.commit()
         
-        # Add random pobude
+        
         for pobuda_data in RANDOM_POBUDE_DATA:
-            # Create a copy to avoid modifying the original data
+            
             pobuda_data_copy = pobuda_data.copy()
             
-            # Add some randomness to status (some responded, some pending)
-            if random.random() < 0.3:  # 30% chance to be responded
+            
+            if random.random() < 0.3:  
                 pobuda_data_copy["status"] = "odgovorjeno"
             else:
                 pobuda_data_copy["status"] = "v obravnavi"
             
-            # Add random coordinates within Ljubljana
+            
             latitude = 46.0569 + random.uniform(-0.01, 0.01)
             longitude = 14.5058 + random.uniform(-0.01, 0.01)
             
-            # Add random email
+            
             email = f"citizen{random.randint(1, 999)}@ljubljana.si"
             
             pobuda = Pobuda(
@@ -1824,7 +1821,7 @@ def generate_random_pobude():
                 created_at=datetime.utcnow() - timedelta(days=random.randint(1, 180))
             )
             
-            # If responded, add response time
+            
             if pobuda.status == "odgovorjeno":
                 pobuda.responded_at = pobuda.created_at + timedelta(days=random.randint(1, 30))
                 pobuda.response = f"Thank you for your initiative. We are working on this issue and will provide updates soon."
@@ -1847,7 +1844,7 @@ async def create_pobuda(
     category: str = Form(default="other"),
     image: Optional[UploadFile] = File(None)
 ):
-    # Handle image upload
+    
     image_path = None
     if image:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -1891,18 +1888,18 @@ def get_pobude(
     search: Optional[str] = Query(default=None)
 ):
     with Session(engine) as session:
-        # Build the base query
+        
         statement = select(Pobuda)
         
-        # Add category filter if provided
+        
         if category and category != "all":
             statement = statement.where(Pobuda.category == category)
         
-        # Add status filter if provided
+        
         if status and status != "all":
             statement = statement.where(Pobuda.status == status)
         
-        # Add search filter if provided
+        
         if search and search.strip():
             search_term = f"%{search.strip()}%"
             statement = statement.where(
@@ -1911,22 +1908,22 @@ def get_pobude(
                 (Pobuda.location.ilike(search_term))
             )
         
-        # Order by creation date (newest first)
+        
         statement = statement.order_by(Pobuda.created_at.desc())
         
-        # If no pagination params are provided
+        
         if limit is None and offset is None:
-            # If filtering by unanswered status, return all of them
+            
             if status and status == "v obravnavi":
                 pobude = session.exec(statement).all()
                 return pobude
             else:
-                # For other cases, return 800 newest pobude for map display
+                
                 statement = statement.limit(800)
                 pobude = session.exec(statement).all()
                 return pobude
 
-        # Apply pagination
+        
         effective_limit = limit if limit is not None else 10
         effective_offset = offset if offset is not None else 0
         
@@ -1950,85 +1947,38 @@ def respond_to_pobuda(pobuda_id: int, response_data: PobudaResponse):
 
 @router.get("/api/streets/search", response_model=List[str])
 def search_streets(q: str = Query(..., min_length=2), limit: int = Query(20, ge=1, le=50)):
-    # Filter streets by query (case-insensitive)
+    
     query_lower = q.lower()
     matches = [street for street in LJUBLJANA_STREETS if query_lower in street.lower()]
     return matches[:limit]
 
 @router.post("/api/admin/ai-prioritize")
 def ai_prioritize_initiatives(initiatives: List[Pobuda]):
-    # Filter only unanswered initiatives (status "v obravnavi")
+    from .chatgpt_service import prioritize_pobude_list_structured
+    
+    
     unanswered = [initiative for initiative in initiatives if initiative.status == "v obravnavi"]
     
-    # Generate random priority scores for each unanswered initiative
-    prioritized = []
-    for initiative in unanswered:
-        priority_score = random.randint(0, 100)
-        prioritized.append({
-            **initiative.dict(),
-            "priority_score": priority_score
-        })
-    
-    # Sort by priority score descending
-    prioritized.sort(key=lambda x: x["priority_score"], reverse=True)
-    return prioritized
-
-@router.post("/api/admin/get-categories")
-def get_categories_for_pobude(initiatives: List[Pobuda]):
-    """Get AI-generated categories for all provided pobude"""
-    if not initiatives:
+    if not unanswered:
         return []
     
-    try:
-        import requests
-        
-        print(f"🤖 Getting categories for {len(initiatives)} pobude with ChatGPT...")
-        
-        # Call the ChatGPT category endpoint for each pobuda
-        categorized = []
-        for initiative in initiatives:
-            try:
-                response = requests.post(
-                    "http://localhost:8000/api/chatgpt/get-category",
-                    json={
-                        "title": initiative.title,
-                        "description": initiative.description
-                    },
-                    headers={"Content-Type": "application/json"}
-                )
-                
-                if response.status_code == 200:
-                    result = response.json()
-                    categorized.append({
-                        **initiative.dict(),
-                        "ai_category": result["category"]
-                    })
-                else:
-                    categorized.append({
-                        **initiative.dict(),
-                        "ai_category": "other"
-                    })
-            except Exception as e:
-                categorized.append({
-                    **initiative.dict(),
-                    "ai_category": "other"
-                })
-        
-        print(f"✅ Category analysis completed for {len(categorized)} pobude")
-        return categorized
-        
-    except Exception as e:
-        print(f"❌ Category analysis failed: {e}")
-        
-        # Fallback to default categories
-        categorized = []
-        for initiative in initiatives:
-            categorized.append({
-                **initiative.dict(),
-                "ai_category": "other"
-            })
-        
-        return categorized
+    
+    pobude_for_chatgpt = []
+    for initiative in unanswered:
+        pobude_for_chatgpt.append({
+            "id": initiative.id,
+            "naslov": initiative.title,
+            "opis": initiative.description,
+            "title": initiative.title,  
+            "description": initiative.description  
+        })
+    
+    
+    prioritized = prioritize_pobude_list_structured(pobude_for_chatgpt)
+    
+    
+    prioritized.sort(key=lambda x: x["nujnost"], reverse=True)
+    return prioritized
 
 @router.get("/api/admin/statistics", response_model=Statistics)
 def get_statistics():

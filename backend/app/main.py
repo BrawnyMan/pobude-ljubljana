@@ -10,8 +10,8 @@ from .database import reset_database, create_tables, engine
 from .models import Pobuda
 from .pobuda import router as pobuda_router
 from .auth import router as auth_router
-from .routes.chatgpt import router as chatgpt_router
 from .statistics import router as statistics_router
+from .categories import get_categories
 
 app = FastAPI()
 
@@ -20,7 +20,6 @@ origins = [
     "http://localhost:5173",
 ]
 
-# Setup CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -29,21 +28,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Create uploads directory if it doesn't exist
 UPLOAD_DIR = "uploads"
 if not os.path.exists(UPLOAD_DIR):
     os.makedirs(UPLOAD_DIR)
 
-# Serve static files
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
-# Reset database and create tables (clears everything on startup)
-# reset_database()
 
-# Include routers
+
 app.include_router(pobuda_router)
 app.include_router(auth_router)
-app.include_router(chatgpt_router)
 app.include_router(statistics_router)
 
 def import_json_data(clear_existing=False):
@@ -53,7 +47,7 @@ def import_json_data(clear_existing=False):
     Args:
         clear_existing (bool): If True, clear existing data before import
     """
-    # Path to JSON files (relative to the backend directory)
+    
     json_files = glob.glob("../data/*_converted.json")
     
     if not json_files:
@@ -74,21 +68,21 @@ def import_json_data(clear_existing=False):
                 file_count = 0
                 for pobuda_data in data:
                     try:
-                        # Prepare Pobuda object with default values for missing fields
+                        
                         pobuda = Pobuda(
                             title=pobuda_data["title"],
                             description=pobuda_data["description"],
                             location=pobuda_data["location"],
                             latitude=pobuda_data["latitude"],
                             longitude=pobuda_data["longitude"],
-                            email=pobuda_data.get("email") or "anonymous@example.com",  # Default email if null/missing
-                            category=pobuda_data.get("category") or "other",  # Use actual category from data
-                            status=pobuda_data.get("status") or "v obravnavi",  # Default status
+                            email=pobuda_data.get("email") or "anonymous@example.com",  
+                            category=pobuda_data.get("category") or "other",  
+                            status=pobuda_data.get("status") or "v obravnavi",  
                             created_at=datetime.fromisoformat(pobuda_data["created_at"]),
                             image_path=pobuda_data.get("image_path")
                         )
                         
-                        # If responded_at exists, add response
+                        
                         if pobuda_data.get("responded_at"):
                             pobuda.responded_at = datetime.fromisoformat(pobuda_data["responded_at"])
                             pobuda.response = pobuda_data.get("response", "Hvala za vašo pobudo. Obravnavali smo jo.")
@@ -98,14 +92,14 @@ def import_json_data(clear_existing=False):
                         
                     except Exception as e:
                         print(f"Error processing record: {str(e)}")
-                        session.rollback()  # Rollback on individual record error
+                        session.rollback()  
                         continue
                 
                 session.commit()
                 total_imported += file_count
                 
             except Exception as e:
-                session.rollback()  # Rollback on file error
+                session.rollback()  
                 raise HTTPException(status_code=500, detail=f"Error reading file {file_path}: {str(e)}")
     
     return {"message": f"Import completed! Total records imported: {total_imported}"}
@@ -123,13 +117,18 @@ async def import_data_endpoint(clear_existing: bool = False):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error during import: {str(e)}")
 
+@app.get("/api/categories")
+async def get_categories_endpoint():
+    """Get list of all available categories"""
+    return get_categories()
+
 @app.get("/api/import-status")
 async def get_import_status():
     """
     Get information about available JSON files and current database status
     """
     try:
-        # Check for JSON files
+        
         json_files = glob.glob("../data/*_converted.json")
         file_info = []
         
@@ -147,7 +146,7 @@ async def get_import_status():
                     "error": str(e)
                 })
         
-        # Get database count
+        
         with Session(engine) as session:
             total_records = session.query(Pobuda).count()
         

@@ -100,7 +100,6 @@ def convert_pobude(input_file, output_file):
 
     print(f"Pretvorjenih {len(results)} pobud in shranjenih v {output_file}")
 
-
 if __name__ == "__main__":
     convert_pobude("data1.json", "data1_converted.json")
     convert_pobude("data2.json", "data2_converted.json")

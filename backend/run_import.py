@@ -12,7 +12,6 @@ import random
 from datetime import datetime, timedelta
 from sqlmodel import Session
 
-# Add current directory to Python path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, current_dir)
 
@@ -25,7 +24,6 @@ except ImportError as e:
     print("   pip install sqlmodel fastapi uvicorn")
     sys.exit(1)
 
-# Ljubljana coordinate bounds
 LJUBLJANA_BOUNDS = {
     "min_lat": 46.001016,
     "max_lat": 46.107632,

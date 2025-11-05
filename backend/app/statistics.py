@@ -4,19 +4,12 @@ from datetime import datetime, timedelta
 from typing import List
 import random
 from .database import get_session
-from .models import Pobuda, CategoryEnum
+from .models import Pobuda
+from .categories import get_categories
 
 router = APIRouter(prefix="/api/statistics", tags=["statistics"])
 
-# Categories for random data generation - using actual categories from data
-CATEGORIES = [
-    "Ceste", "Drevesa, rastje in zelene površine", "Parki in zelenice", 
-    "Javni red in mir", "Delo Mestnega redarstva", "Vzdrževanje cest",
-    "Kolesarske poti", "LPP", "Pešpoti in pločniki", "Razno",
-    "Umiritev prometa in varnost", "Vodovod", "Kultura", "Delo inšpekcij",
-    "Avtobusna postajališča", "Oglaševanje ", "Športne površine", 
-    "Mirujoči promet", "Socialno varstvo in zdravje", "Informatika", "other"
-]
+CATEGORIES = get_categories()
 
 def generate_random_category_stats():
     """Generate random category statistics for demonstration"""
@@ -70,7 +63,7 @@ def generate_random_location_stats():
 async def get_public_statistics(session: Session = Depends(get_session)):
     """Get public statistics for the statistics page"""
     
-    # Get basic counts
+    
     total_pobude = session.exec(select(func.count(Pobuda.id))).first() or 0
     pending_pobude = session.exec(
         select(func.count(Pobuda.id)).where(Pobuda.status == "v obravnavi")
@@ -81,7 +74,7 @@ async def get_public_statistics(session: Session = Depends(get_session)):
     
     response_rate = (responded_pobude / total_pobude * 100) if total_pobude > 0 else 0
     
-    # Get category statistics
+    
     category_stats = []
     for category in CATEGORIES:
         category_total = session.exec(
@@ -112,14 +105,14 @@ async def get_public_statistics(session: Session = Depends(get_session)):
             "response_rate": round(cat_response_rate, 1)
         })
     
-    # If no real data, generate random data
+    
     if total_pobude == 0:
         category_stats = generate_random_category_stats()
         monthly_stats = generate_random_monthly_stats()
         location_stats = generate_random_location_stats()
         average_response_time = random.uniform(2.5, 8.0)
     else:
-        # Get monthly statistics
+        
         monthly_stats = []
         for i in range(6):
             start_date = datetime.now() - timedelta(days=30*i)
@@ -146,13 +139,13 @@ async def get_public_statistics(session: Session = Depends(get_session)):
                 "responded": monthly_responded
             })
         
-        # Get location statistics
+        
         location_stats = []
         locations = session.exec(
             select(Pobuda.location).distinct()
         ).all()
         
-        for location in locations[:10]:  # Top 10 locations
+        for location in locations[:10]:  
             location_total = session.exec(
                 select(func.count(Pobuda.id)).where(Pobuda.location == location)
             ).first() or 0
@@ -171,7 +164,7 @@ async def get_public_statistics(session: Session = Depends(get_session)):
                 "pending": location_total - location_responded
             })
         
-        # Calculate average response time
+        
         responded_pobude_with_time = session.exec(
             select(Pobuda).where(
                 Pobuda.status == "odgovorjeno",
@@ -190,7 +183,7 @@ async def get_public_statistics(session: Session = Depends(get_session)):
         else:
             average_response_time = None
     
-    # Find most and least problematic categories
+    
     category_stats_sorted = sorted(category_stats, key=lambda x: x['response_rate'])
     most_problematic = category_stats_sorted[0] if category_stats_sorted else None
     least_problematic = category_stats_sorted[-1] if category_stats_sorted else None
@@ -209,12 +202,6 @@ async def get_public_statistics(session: Session = Depends(get_session)):
         "most_problematic_category": most_problematic,
         "least_problematic_category": least_problematic
     }
-
-@router.get("/categories")
-async def get_category_statistics(session: Session = Depends(get_session)):
-    """Get statistics by category"""
-    stats = await get_public_statistics(session)
-    return stats["category_stats"]
 
 @router.get("/monthly")
 async def get_monthly_statistics(session: Session = Depends(get_session)):
