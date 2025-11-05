@@ -3,7 +3,7 @@ import { createPobuda } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { searchStreets } from '../services/api';
 
-// Prej: statični seznam ulic. Zdaj uporabljamo iskanje prek API-ja.
+
 
 interface FormData {
   location: string;
@@ -33,7 +33,7 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
   const [selectedFileName, setSelectedFileName] = useState<string>('');
   const [formData, setFormData] = useState<FormData>({
     location: '',
-    latitude: 46.0569, // Ljubljana center
+    latitude: 46.0569, 
     longitude: 14.5058,
     title: '',
     description: '',
@@ -48,7 +48,7 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
   const [isSearching, setIsSearching] = useState(false);
   const [streetError, setStreetError] = useState<string | null>(null);
 
-  // Debounced street search
+  
   useEffect(() => {
     if (!streetQuery || streetQuery.trim().length < 2) {
       setStreetOptions([]);
@@ -73,7 +73,7 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
     };
   }, [streetQuery]);
 
-  // Update form data when location is selected on the map
+  
   useEffect(() => {
     if (selectedLocation) {
       setFormData(prev => ({
@@ -94,7 +94,7 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
       submitData.append('title', formData.title);
       submitData.append('description', formData.description);
       
-      // Set location based on whether coordinates are selected
+      
       if (selectedLocation) {
         submitData.append('location', 'Izbrana lokacija na zemljevidu');
       } else {
@@ -137,7 +137,7 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
                     value={streetQuery}
                     onChange={(e) => setStreetQuery(e.target.value)}
                     onBlur={() => {
-                      // If user typed but didn't select, keep typed value
+                      
                       if (!formData.location && streetQuery) {
                         setFormData(prev => ({ ...prev, location: streetQuery }));
                       }
@@ -362,10 +362,10 @@ const InitiativeForm: React.FC<InitiativeFormProps> = ({ selectedLocation, onCle
     switch (step) {
       case 1:
         if (selectedLocation) {
-          // If coordinates are selected, we don't need street/number
+          
           return true;
         } else {
-          // If no coordinates, we need both street and number
+          
           return formData.location !== '' && formData.streetNumber !== '';
         }
       case 2:

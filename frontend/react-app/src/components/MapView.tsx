@@ -8,7 +8,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import L from 'leaflet';
 
-// Add CSS to make all map elements non-focusable
+
 const mapFocusStyles = `
   .leaflet-container,
   .leaflet-container *,
@@ -29,7 +29,7 @@ const mapFocusStyles = `
   }
 `;
 
-// Inject the styles into the document head
+
 if (typeof document !== 'undefined') {
   const styleElement = document.createElement('style');
   styleElement.textContent = mapFocusStyles;
@@ -39,21 +39,21 @@ if (typeof document !== 'undefined') {
   }
 }
 
-// Fix for default marker icon
+
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
-// Ljubljana bounds
+
 const LJUBLJANA_BOUNDS = new LatLngBounds(
-    new LatLng(45.9774, 14.4276), // Southwest corner
-    new LatLng(46.1674, 14.6276)  // Northeast corner
+    new LatLng(45.9774, 14.4276), 
+    new LatLng(46.1674, 14.6276)  
 );
 
-// Ljubljana center
+
 const LJUBLJANA_CENTER: [number, number] = [46.0569, 14.5058];
 
-// Fix for default marker icon
+
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
     iconUrl: markerIcon,
@@ -61,7 +61,7 @@ L.Icon.Default.mergeOptions({
     shadowUrl: markerShadow,
 });
 
-// Pin marker icon for selection
+
 const pinIcon = new Icon({
     iconUrl: markerIcon,
     iconSize: [25, 41],
@@ -71,7 +71,7 @@ const pinIcon = new Icon({
     shadowSize: [41, 41]
 });
 
-// Custom marker icons
+
 const answeredIcon = new L.Icon({
     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
@@ -96,7 +96,7 @@ interface MapViewProps {
     focusLocation?: [number, number] | null;
 }
 
-// MapBoundsHandler component to restrict map movement
+
 const MapBoundsHandler: React.FC = () => {
     const map = useMap();
 
@@ -105,7 +105,7 @@ const MapBoundsHandler: React.FC = () => {
         map.setMinZoom(12);
         map.setMaxZoom(18);
         
-        // If current view is outside bounds, pan to Ljubljana center
+        
         if (!LJUBLJANA_BOUNDS.contains(map.getCenter())) {
             map.setView(LJUBLJANA_CENTER, 13);
         }
@@ -114,7 +114,7 @@ const MapBoundsHandler: React.FC = () => {
     return null;
 };
 
-// Component to handle map focus
+
 const MapFocus = ({ focusLocation }: { focusLocation: [number, number] | null }) => {
     const map = useMap();
 
@@ -167,7 +167,7 @@ const MapView: React.FC<MapViewProps> = ({ isSelectionMode, onLocationSelect, fo
             tabIndex={-1}
         >
             <MapContainer
-                center={[46.0569, 14.5058]} // Ljubljana coordinates
+                center={[46.0569, 14.5058]} 
                 zoom={13}
                 style={{ height: '100%', width: '100%' }}
                 scrollWheelZoom={true}

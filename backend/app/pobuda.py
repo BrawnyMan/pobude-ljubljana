@@ -1887,18 +1887,14 @@ def get_pobude(
     status: Optional[str] = Query(default=None),
     search: Optional[str] = Query(default=None)
 ):
-    with Session(engine) as session:
-        
+    with Session(engine) as session:        
         statement = select(Pobuda)
         
-        
         if category and category != "all":
-            statement = statement.where(Pobuda.category == category)
-        
+            statement = statement.where(Pobuda.category == category)    
         
         if status and status != "all":
             statement = statement.where(Pobuda.status == status)
-        
         
         if search and search.strip():
             search_term = f"%{search.strip()}%"
@@ -1908,21 +1904,16 @@ def get_pobude(
                 (Pobuda.location.ilike(search_term))
             )
         
-        
         statement = statement.order_by(Pobuda.created_at.desc())
         
-        
         if limit is None and offset is None:
-            
             if status and status == "v obravnavi":
                 pobude = session.exec(statement).all()
                 return pobude
             else:
-                
                 statement = statement.limit(800)
                 pobude = session.exec(statement).all()
                 return pobude
-
         
         effective_limit = limit if limit is not None else 10
         effective_offset = offset if offset is not None else 0
@@ -1947,7 +1938,6 @@ def respond_to_pobuda(pobuda_id: int, response_data: PobudaResponse):
 
 @router.get("/api/streets/search", response_model=List[str])
 def search_streets(q: str = Query(..., min_length=2), limit: int = Query(20, ge=1, le=50)):
-    
     query_lower = q.lower()
     matches = [street for street in LJUBLJANA_STREETS if query_lower in street.lower()]
     return matches[:limit]
@@ -1955,13 +1945,11 @@ def search_streets(q: str = Query(..., min_length=2), limit: int = Query(20, ge=
 @router.post("/api/admin/ai-prioritize")
 def ai_prioritize_initiatives(initiatives: List[Pobuda]):
     from .chatgpt_service import prioritize_pobude_list_structured
-    
-    
+
     unanswered = [initiative for initiative in initiatives if initiative.status == "v obravnavi"]
     
     if not unanswered:
         return []
-    
     
     pobude_for_chatgpt = []
     for initiative in unanswered:
@@ -1973,9 +1961,7 @@ def ai_prioritize_initiatives(initiatives: List[Pobuda]):
             "description": initiative.description  
         })
     
-    
     prioritized = prioritize_pobude_list_structured(pobude_for_chatgpt)
-    
     
     prioritized.sort(key=lambda x: x["nujnost"], reverse=True)
     return prioritized

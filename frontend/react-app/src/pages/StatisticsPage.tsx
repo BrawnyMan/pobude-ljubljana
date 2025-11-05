@@ -120,7 +120,7 @@ const StatisticsPage: React.FC = () => {
     );
   }
 
-  // Chart data preparation
+  
   const categoryChartData = {
     labels: statistics.category_stats.map(stat => stat.category),
     datasets: [

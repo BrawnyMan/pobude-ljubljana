@@ -19,7 +19,7 @@ const PobudePage = () => {
     const [noResults, setNoResults] = useState<boolean>(false);
     const [autoFillFetches, setAutoFillFetches] = useState<number>(0);
     
-    // Search and filter states
+    
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [categoryFilter, setCategoryFilter] = useState('all');
@@ -50,16 +50,16 @@ const PobudePage = () => {
     ];
 
     useEffect(() => {
-        // initial fetch
+        
         fetchNextPage(true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        
     }, [pageSize]);
 
     useEffect(() => {
         filterAndSortPobude();
     }, [pobude, statusFilter, categoryFilter, sortOrder]);
 
-    // Reset data when category filter changes
+    
     useEffect(() => {
         setOffset(0);
         setPobude([]);
@@ -69,7 +69,7 @@ const PobudePage = () => {
         fetchNextPage(true);
     }, [categoryFilter]);
 
-    // Reset data when status filter changes
+    
     useEffect(() => {
         setOffset(0);
         setPobude([]);
@@ -79,20 +79,20 @@ const PobudePage = () => {
         fetchNextPage(true);
     }, [statusFilter]);
 
-    // Debounced search - wait 300ms after user stops typing
+    
     useEffect(() => {
         const timeoutId = setTimeout(() => {
             if (searchTerm.trim() !== '') {
                 setIsSearching(true);
             }
-            // Just trigger a new fetch with the search parameter, don't reset everything
+            
             fetchNextPage(true);
         }, 300);
 
         return () => clearTimeout(timeoutId);
     }, [searchTerm]);
 
-    // Handle ESC key to close modal
+    
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape' && selectedPobuda) {
@@ -120,19 +120,19 @@ const PobudePage = () => {
                 setIsFetchingMore(true);
             }
             
-            // If status is "v obravnavi" (unanswered), load all of them at once
+            
             if (statusFilter === 'v obravnavi') {
                 const data = await getPobude({ 
                     category: categoryFilter !== 'all' ? categoryFilter : undefined,
                     status: 'v obravnavi',
                     search: searchTerm.trim() !== '' ? searchTerm.trim() : undefined
-                    // No limit/offset - load all
+                    
                 });
                 setPobude(data);
                 setOffset(data.length);
-                setHasMore(false); // No more data to load
+                setHasMore(false); 
             } else {
-                // For other statuses, use pagination
+                
                 const nextOffset = reset ? 0 : offset;
                 const data = await getPobude({ 
                     limit: pageSize, 
@@ -163,10 +163,10 @@ const PobudePage = () => {
     const filterAndSortPobude = () => {
         let filtered = [...pobude];
 
-        // Search, status, and category filtering is now handled on the backend
-        // Only apply client-side sorting and other non-backend filters
+        
+        
 
-        // Sort by date
+        
         filtered.sort((a, b) => {
             const dateA = new Date(a.created_at).getTime();
             const dateB = new Date(b.created_at).getTime();
@@ -177,7 +177,7 @@ const PobudePage = () => {
         setNoResults(filtered.length === 0);
     };
 
-    // Infinite scroll handler
+    
     const sentinelRef = useRef<HTMLDivElement | null>(null);
     const listContainerRef = useRef<HTMLDivElement | null>(null);
     useEffect(() => {
@@ -204,7 +204,7 @@ const PobudePage = () => {
         };
     }, [fetchNextPage, hasMore, isInitialLoading, isFetchingMore, noResults, autoFillFetches]);
 
-    // Reset auto-fill when filters or pageSize change
+    
     useEffect(() => {
         setAutoFillFetches(0);
     }, [searchTerm, statusFilter, categoryFilter, pageSize]);

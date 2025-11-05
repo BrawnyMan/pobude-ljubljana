@@ -12,7 +12,7 @@ import {
   Legend
 } from 'chart.js';
 
-// Register ChartJS components
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -54,7 +54,7 @@ const AdminPage = () => {
   const isFetchingRef = useRef<boolean>(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const listContainerRef = useRef<HTMLDivElement | null>(null);
-  // Add this state to store random importance values for each pobuda
+  
   const [importanceMap, setImportanceMap] = useState<{ [id: number]: number }>({});
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
@@ -66,12 +66,12 @@ const AdminPage = () => {
     filterPobude();
   }, [pobude, statusFilter, categoryFilter, importanceMap, sortOrder]);
 
-  // Reset auto-fill when filters change
+  
   useEffect(() => {
     setAutoFillFetches(0);
   }, [searchTerm, statusFilter, categoryFilter]);
 
-  // Reset data when category filter changes
+  
   useEffect(() => {
     setOffset(0);
     setPobude([]);
@@ -81,7 +81,7 @@ const AdminPage = () => {
     fetchNextPage(true);
   }, [categoryFilter]);
 
-  // Reset data when status filter changes
+  
   useEffect(() => {
     setOffset(0);
     setPobude([]);
@@ -91,20 +91,20 @@ const AdminPage = () => {
     fetchNextPage(true);
   }, [statusFilter]);
 
-  // Debounced search - wait 300ms after user stops typing
+  
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (searchTerm.trim() !== '') {
         setIsSearching(true);
       }
-      // Just trigger a new fetch with the search parameter, don't reset everything
+      
       fetchNextPage(true);
     }, 300);
 
     return () => clearTimeout(timeoutId);
   }, [searchTerm]);
 
-  // Handle ESC key to close modal
+  
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && selectedPobuda) {
@@ -122,7 +122,7 @@ const AdminPage = () => {
     };
   }, [selectedPobuda]);
 
-  // Remove automatic importance generation - only generate when AI sort is clicked
+  
 
   const fetchNextPage = useCallback(async (reset: boolean = false) => {
     if (isFetchingRef.current) return;
@@ -134,23 +134,23 @@ const AdminPage = () => {
         setIsFetchingMore(true);
       }
       
-      // If status is "v obravnavi" (unanswered), load all of them at once
+      
       if (statusFilter === 'v obravnavi') {
         const [pobudeData, statsData] = await Promise.all([
           getPobude({ 
             category: categoryFilter !== 'all' ? categoryFilter : undefined,
             status: 'v obravnavi',
             search: searchTerm.trim() !== '' ? searchTerm.trim() : undefined
-            // No limit/offset - load all
+            
           }),
           fetch(`${API_BASE_URL}/admin/statistics`).then(res => res.json())
         ]);
         setPobude(pobudeData);
         setOffset(pobudeData.length);
         setStatistics(statsData);
-        setHasMore(false); // No more data to load
+        setHasMore(false); 
       } else {
-        // For other statuses, use pagination
+        
         const nextOffset = reset ? 0 : offset;
         const [pobudeData, statsData] = await Promise.all([
           getPobude({ 
@@ -185,10 +185,10 @@ const AdminPage = () => {
   const filterPobude = () => {
     let filtered = [...pobude];
 
-    // Search, status, and category filtering is now handled on the backend
-    // Only apply client-side sorting and other non-backend filters
+    
+    
 
-    // Apply importance sorting if available
+    
     if (Object.keys(importanceMap).length > 0) {
       filtered.sort((a, b) => {
         const aImportance = importanceMap[a.id] || 0;
@@ -206,7 +206,7 @@ const AdminPage = () => {
     setNoResults(filtered.length === 0);
   };
 
-  // Infinite scroll handler
+  
   useEffect(() => {
     const el = sentinelRef.current;
     const rootEl = listContainerRef.current;
@@ -245,7 +245,7 @@ const AdminPage = () => {
         throw new Error('Napaka pri oddaji odgovora');
       }
 
-      // Refresh data after successful response
+      
       await fetchNextPage(true);
       setSelectedPobuda(null);
       setResponse('');
@@ -268,7 +268,7 @@ const AdminPage = () => {
       
       const data = await res.json();
       if (Array.isArray(data)) {
-        // Create importance map from API response
+        
         const newMap: { [id: number]: number } = {};
         data.forEach((p: any) => {
           newMap[p.id] = p.nujnost;
@@ -482,16 +482,16 @@ const AdminPage = () => {
                         {/* Importance circle with improved color contrast */}
                         {(() => {
                           const value = importanceMap[pobuda.id] ?? '?';
-                          let bgColor = '#0056b3'; // darker blue for better contrast
-                          let textColor = '#ffffff'; // white text
+                          let bgColor = '#0056b3'; 
+                          let textColor = '#ffffff'; 
                           let ariaLabel = `Importance score: ${value} out of 100`;
                           
                           if (typeof value === 'number') {
                             if (value < 50) {
-                              bgColor = '#b02a37'; // darker red for better contrast
+                              bgColor = '#b02a37'; 
                               ariaLabel = `Low importance score: ${value} out of 100`;
                             } else if (value > 80) {
-                              bgColor = '#198754'; // darker green for better contrast
+                              bgColor = '#198754'; 
                               ariaLabel = `High importance score: ${value} out of 100`;
                             } else {
                               ariaLabel = `Medium importance score: ${value} out of 100`;

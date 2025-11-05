@@ -18,7 +18,6 @@ def prioritize_pobude_list(pobude_list):
         try:
             prompt = f"Title: {pobuda.get('title', '')}\nDescription: {pobuda.get('description', '')}\nLocation: {pobuda.get('location', '')}"
             
-            
             match = re.search(r"priority.*?(\d)", analysis, re.IGNORECASE)
             score = int(match.group(1)) if match else 3
             
@@ -30,13 +29,11 @@ def prioritize_pobude_list(pobude_list):
                 "ai_analysis": analysis
             })
         except Exception as e:
-            
             prioritized.append({
                 **pobuda,
                 "priority_score": 50,
                 "ai_analysis": f"Analysis failed: {str(e)}"
             })
-    
     
     prioritized.sort(key=lambda x: x["priority_score"], reverse=True)
     return prioritized
@@ -46,7 +43,6 @@ def prioritize_pobude_list_structured(pobude_list):
     if not pobude_list:
         return []
     
-    
     pobude_for_chatgpt = []
     for pobuda in pobude_list:
         pobude_for_chatgpt.append({
@@ -54,7 +50,6 @@ def prioritize_pobude_list_structured(pobude_list):
             "naslov": pobuda.get("naslov", pobuda.get("title", "")),
             "opis": pobuda.get("opis", pobuda.get("description", ""))
         })
-    
     
     prompt_text = f"""Oceni nujnost naslednjih pobud in vrni strukturiran odgovor v JSON obliki.
 
@@ -82,15 +77,11 @@ Vrni samo JSON array z id in nujnost za vsako pobudo. Nujnost oceni glede na res
             max_tokens=2000
         )
         
-        
         response_text = response.choices[0].message.content.strip()
-        
         
         try:
             result = json.loads(response_text)
         except json.JSONDecodeError:
-            
-            
             start_idx = response_text.find('[')
             end_idx = response_text.rfind(']')
             
@@ -103,34 +94,26 @@ Vrni samo JSON array z id in nujnost za vsako pobudo. Nujnost oceni glede na res
             else:
                 raise ValueError("Could not find JSON array in response")
         
-        
-        if isinstance(result, dict):
-            
+        if isinstance(result, dict):    
             for key, value in result.items():
                 if isinstance(value, list):
                     result = value
                     break
         
-        
         if not isinstance(result, list):
             raise ValueError("Response is not a list")
-        
         
         prioritized = []
         for item in result:
             if "id" in item and "nujnost" in item:
                 nujnost = int(item["nujnost"])
-                
                 nujnost = max(0, min(100, nujnost))
                 prioritized.append({
                     "id": int(item["id"]),
                     "nujnost": nujnost
                 })
-        
         return prioritized
-        
     except Exception as e:
-        
         print(f"Error in ChatGPT prioritization: {str(e)}")
         return [
             {

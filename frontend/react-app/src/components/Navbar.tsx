@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-// CSS styles for focus states
+
 const focusStyles = `
   /* Remove any default outline behavior */
   * {
@@ -58,23 +58,23 @@ const Navbar: React.FC = () => {
     const navigate = useNavigate();
     const isLoggedIn = localStorage.getItem('admin_token') === 'dummy-admin-token';
 
-    // Inject styles when component mounts
+    
     useEffect(() => {
         const styleId = 'navbar-focus-styles';
         
-        // Remove existing style if present
+        
         const existingStyle = document.getElementById(styleId);
         if (existingStyle) {
             existingStyle.remove();
         }
         
-        // Create and inject new style element
+        
         const styleElement = document.createElement('style');
         styleElement.id = styleId;
         styleElement.textContent = focusStyles;
         document.head.appendChild(styleElement);
         
-        // Cleanup on unmount
+        
         return () => {
             const style = document.getElementById(styleId);
             if (style) {
