@@ -1945,26 +1945,32 @@ def search_streets(q: str = Query(..., min_length=2), limit: int = Query(20, ge=
 @router.post("/api/admin/ai-prioritize")
 def ai_prioritize_initiatives(initiatives: List[Pobuda]):
     from .chatgpt_service import prioritize_pobude_list_structured
-
-    unanswered = [initiative for initiative in initiatives if initiative.status == "v obravnavi"]
     
-    if not unanswered:
-        return []
-    
-    pobude_for_chatgpt = []
-    for initiative in unanswered:
-        pobude_for_chatgpt.append({
-            "id": initiative.id,
-            "naslov": initiative.title,
-            "opis": initiative.description,
-            "title": initiative.title,  
-            "description": initiative.description  
-        })
-    
-    prioritized = prioritize_pobude_list_structured(pobude_for_chatgpt)
-    
-    prioritized.sort(key=lambda x: x["nujnost"], reverse=True)
-    return prioritized
+    try:
+        unanswered = [initiative for initiative in initiatives if initiative.status == "v obravnavi"]
+        
+        if not unanswered:
+            return []
+        
+        pobude_for_chatgpt = []
+        for initiative in unanswered:
+            pobude_for_chatgpt.append({
+                "id": initiative.id,
+                "naslov": initiative.title,
+                "opis": initiative.description,
+                "title": initiative.title,  
+                "description": initiative.description  
+            })
+        
+        prioritized = prioritize_pobude_list_structured(pobude_for_chatgpt)
+        
+        prioritized.sort(key=lambda x: x["nujnost"], reverse=True)
+        return prioritized
+    except Exception as e:
+        print(f"Error in ai_prioritize_initiatives: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Error processing AI prioritization: {str(e)}")
 
 @router.get("/api/admin/statistics", response_model=Statistics)
 def get_statistics():

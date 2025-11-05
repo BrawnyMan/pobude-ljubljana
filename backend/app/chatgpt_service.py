@@ -8,36 +8,6 @@ from pathlib import Path
 load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env")
 client = openai.OpenAI()  
 
-def prioritize_pobude_list(pobude_list):
-    """Return list of pobude with priority scores"""
-    if not pobude_list:
-        return []
-    
-    prioritized = []
-    for pobuda in pobude_list:
-        try:
-            prompt = f"Title: {pobuda.get('title', '')}\nDescription: {pobuda.get('description', '')}\nLocation: {pobuda.get('location', '')}"
-            
-            match = re.search(r"priority.*?(\d)", analysis, re.IGNORECASE)
-            score = int(match.group(1)) if match else 3
-            
-            score_100 = int((score - 1) * 25)
-            
-            prioritized.append({
-                **pobuda,
-                "priority_score": score_100,
-                "ai_analysis": analysis
-            })
-        except Exception as e:
-            prioritized.append({
-                **pobuda,
-                "priority_score": 50,
-                "ai_analysis": f"Analysis failed: {str(e)}"
-            })
-    
-    prioritized.sort(key=lambda x: x["priority_score"], reverse=True)
-    return prioritized
-
 def prioritize_pobude_list_structured(pobude_list):
     """Return structured list with id and nujnost (urgency) score (0-100)"""
     if not pobude_list:
@@ -66,7 +36,8 @@ Seznam pobud za oceno:
 
 Vrni samo JSON array z id in nujnost za vsako pobudo. Nujnost oceni glede na resnost problema, vpliv na prebivalce in potrebo po hitri rešitvi."""
 
-    try:
+
+    try:    
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[

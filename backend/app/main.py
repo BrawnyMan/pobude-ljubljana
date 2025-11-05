@@ -1,6 +1,7 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 import os
 import json
 import glob
@@ -26,15 +27,39 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Global exception handler to ensure CORS headers are always added"""
+    origin = request.headers.get("origin")
+    cors_headers = {
+        "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Allow-Methods": "*",
+        "Access-Control-Allow-Headers": "*",
+    }
+    
+    if origin in origins:
+        cors_headers["Access-Control-Allow-Origin"] = origin
+    
+    if isinstance(exc, HTTPException):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail},
+            headers=cors_headers
+        )
+    return JSONResponse(
+        status_code=500,
+        content={"detail": str(exc)},
+        headers=cors_headers
+    )
 
 UPLOAD_DIR = "uploads"
 if not os.path.exists(UPLOAD_DIR):
     os.makedirs(UPLOAD_DIR)
 
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
-
-
 
 app.include_router(pobuda_router)
 app.include_router(auth_router)
@@ -82,22 +107,19 @@ def import_json_data(clear_existing=False):
                             image_path=pobuda_data.get("image_path")
                         )
                         
-                        
                         if pobuda_data.get("responded_at"):
                             pobuda.responded_at = datetime.fromisoformat(pobuda_data["responded_at"])
                             pobuda.response = pobuda_data.get("response", "Hvala za vašo pobudo. Obravnavali smo jo.")
                         
                         session.add(pobuda)
                         file_count += 1
-                        
                     except Exception as e:
                         print(f"Error processing record: {str(e)}")
                         session.rollback()  
                         continue
-                
+
                 session.commit()
                 total_imported += file_count
-                
             except Exception as e:
                 session.rollback()  
                 raise HTTPException(status_code=500, detail=f"Error reading file {file_path}: {str(e)}")
@@ -145,7 +167,6 @@ async def get_import_status():
                     "filename": os.path.basename(file_path),
                     "error": str(e)
                 })
-        
         
         with Session(engine) as session:
             total_records = session.query(Pobuda).count()
