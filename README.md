@@ -37,11 +37,11 @@ OPENAI_API_KEY=sk-proj-ziyo_IyTCDB174vZ...
 You can start the FastAPI backend using either script:
 On Linux / macOS / Git Bash
 ```bash
-./start.sh
+start.sh
 ```
 On Windows (Command Prompt or double-click)
 ```bash
-./start.bat
+start.bat
 ```
 The script will automatically:
 
