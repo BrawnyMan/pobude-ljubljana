@@ -2,8 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { getPobude, Pobuda, toAssetUrl } from '../services/api';
 import { Link } from 'react-router-dom';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
-
 const AllInitiativesPage: React.FC = () => {
   const [initiatives, setInitiatives] = useState<Pobuda[]>([]);
   const [isLoading, setIsLoading] = useState(true);

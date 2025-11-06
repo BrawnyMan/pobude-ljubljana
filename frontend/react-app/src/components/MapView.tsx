@@ -165,7 +165,6 @@ const MapView: React.FC<MapViewProps> = ({ isSelectionMode, onLocationSelect, fo
                 maxBoundsViscosity={1.0}
                 minZoom={12}
                 maxZoom={18}
-                tabIndex={-1}
             >
                 <MapBoundsHandler />
                 <TileLayer
@@ -180,7 +179,6 @@ const MapView: React.FC<MapViewProps> = ({ isSelectionMode, onLocationSelect, fo
                     maxClusterRadius={50}
                     spiderfyOnMaxZoom={true}
                     showCoverageOnHover={false}
-                    tabIndex={-1}
                 >
                     {pobude.map((pobuda) => {
                         if (
@@ -197,9 +195,8 @@ const MapView: React.FC<MapViewProps> = ({ isSelectionMode, onLocationSelect, fo
                                 key={pobuda.id}
                                 position={[pobuda.latitude, pobuda.longitude]}
                                 icon={pobuda.status === 'odgovorjeno' ? answeredIcon : pendingIcon}
-                                tabIndex={-1}
                             >
-                                <Popup tabIndex={-1}>
+                                <Popup>
                                     <div className="popup-content" tabIndex={-1}>
                                         <h3 className="h6">{pobuda.title}</h3>
                                         <p className="text-muted mb-2">
@@ -223,9 +220,8 @@ const MapView: React.FC<MapViewProps> = ({ isSelectionMode, onLocationSelect, fo
                     <Marker
                         position={selectedLocation}
                         icon={pinIcon}
-                        tabIndex={-1}
                     >
-                        <Popup tabIndex={-1}>
+                        <Popup>
                             <div tabIndex={-1}>
                                 <strong>Izbrana lokacija</strong><br />
                                 Širina: {selectedLocation[0].toFixed(6)}<br />
