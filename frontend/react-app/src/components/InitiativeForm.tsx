@@ -3,8 +3,6 @@ import { createPobuda } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { searchStreets } from '../services/api';
 
-
-
 interface FormData {
   location: string;
   latitude: number;

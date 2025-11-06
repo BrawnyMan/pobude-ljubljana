@@ -13,7 +13,6 @@ import {
   Legend
 } from 'chart.js';
 
-
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -172,7 +171,6 @@ const AdminPage = () => {
         setHasMore(pobudeData.length === pageSize);
       }
     } catch (err) {
-      // Don't set error if it's an auth error (redirect will happen)
       if (err instanceof Error && err.message !== 'Authentication failed' && err.message !== 'No authentication token') {
         setError(err.message || 'Napaka pri pridobivanju podatkov');
       }
@@ -249,7 +247,6 @@ const AdminPage = () => {
       setSelectedPobuda(null);
       setResponse('');
     } catch (err) {
-      // Don't set error if it's an auth error (redirect will happen)
       if (err instanceof Error && err.message !== 'Authentication failed' && err.message !== 'No authentication token') {
         setError(err.message || 'Napaka pri oddaji odgovora');
       }
@@ -277,7 +274,6 @@ const AdminPage = () => {
         setImportanceMap(newMap);
       }
     } catch (err) {
-      // Don't show alert if it's an auth error (redirect will happen)
       if (err instanceof Error && err.message !== 'Authentication failed' && err.message !== 'No authentication token') {
         console.error('AI prioritization error:', err);
         alert('Napaka pri AI analizi pobud');
@@ -346,7 +342,6 @@ const AdminPage = () => {
     <div className="container mt-4">
       <h2 className="mb-4">Administratorska nadzorna plošča</h2>
       
-      {/* Statistics Cards */}
       <div className="row mb-4">
         <div className="col-md-4">
           <div className="card">
@@ -374,14 +369,12 @@ const AdminPage = () => {
         </div>
       </div>
 
-      {/* Chart */}
       <div className="card mb-4">
         <div className="card-body">
           {chartData && <Line options={chartOptions} data={chartData} />}
         </div>
       </div>
 
-      {/* Filters */}
       <div className="card mb-4">
         <div className="card-body">
           <div className="mb-3">
@@ -454,7 +447,6 @@ const AdminPage = () => {
         </div>
       </div>
 
-      {/* Pobude List */}
       <div className="card">
         <div className="card-body">
           <h5 className="card-title">Seznam pobud</h5>
@@ -483,7 +475,6 @@ const AdminPage = () => {
                     <td>{new Date(pobuda.created_at).toLocaleDateString()}</td>
                     {Object.keys(importanceMap).length > 0 && (
                       <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
-                        {/* Importance circle with improved color contrast */}
                         {(() => {
                           const value = importanceMap[pobuda.id] ?? '?';
                           let bgColor = '#0056b3'; 
@@ -567,7 +558,6 @@ const AdminPage = () => {
         </div>
       </div>
 
-      {/* Add this button above the list/table of initiatives */}
       <div className="d-flex gap-2 mb-3">
         <button className="btn btn-info" onClick={handleAiSort}>
           AI razvrsti po prioriteti
@@ -582,7 +572,6 @@ const AdminPage = () => {
         )}
       </div>
 
-      {/* Response Modal */}
       {selectedPobuda && (
         <div className="modal show d-block" tabIndex={-1}>
           <div className="modal-dialog">

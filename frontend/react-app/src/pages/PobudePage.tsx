@@ -239,16 +239,13 @@ const PobudePage = () => {
     return (
         <div className="container-fluid d-flex flex-column flex-grow-1" style={{ minHeight: 0 }}>
             <div className="row flex-grow-1 min-h-0" style={{ minHeight: 0 }}>
-                {/* Map Section - Left side */}
                 <div className="col-lg-8 p-0" style={{ height: '84vh' }}>
                     <MapView isSelectionMode={false} focusLocation={focusLocation} />
                 </div>
                 
-                {/* List Section - Right side */}
                 <div className="col-lg-4 py-3" style={{ height: '84vh', display: 'flex', flexDirection: 'column' }}>
                     <h1 className="mb-4">Vse pobude</h1>
                     
-                    {/* Iskanje, filtri in velikost strani */}
                     <div className="mb-4">
                         <div className="input-group mb-3">
                             <label htmlFor="search-pobude" className="visually-hidden">Iskanje pobud po naslovu</label>
@@ -335,7 +332,6 @@ const PobudePage = () => {
                         </div>
                     </div>
 
-                    {/* List */}
                     <div ref={listContainerRef} className="list-group" role="list" aria-label="Seznam pobud" style={{ overflowY: 'auto', flex: 1, minHeight: 0 }}>
                         {filteredPobude.map((pobuda) => (
                             <div
@@ -390,7 +386,6 @@ const PobudePage = () => {
                 </div>
             </div>
 
-            {/* Pobuda Details Modal */}
             {selectedPobuda && (
                 <div className="modal show d-block" tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="modal-title">
                     <div className="modal-dialog">

@@ -1,9 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-
 const focusStyles = `
-  /* Focus styles for all links in the header */
   header.header a:focus {
     background-color: rgba(255, 255, 255, 0.2) !important;
     box-shadow: 0 0 0 3px #ffffff !important;
@@ -14,7 +12,6 @@ const focusStyles = `
     position: relative !important;
   }
   
-  /* Specific selectors for better targeting */
   header.header h1 a:focus,
   header.header .nav-link:focus,
   header.header a.text-white:focus {

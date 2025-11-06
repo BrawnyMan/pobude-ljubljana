@@ -1,14 +1,11 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-
 const focusStyles = `
-  /* Remove any default outline behavior */
   * {
     outline: none;
   }
   
-  /* Force focus styles on ALL links and buttons */
   a:focus,
   button:focus {
     background-color: rgba(255, 255, 255, 0.2) !important;
@@ -20,7 +17,6 @@ const focusStyles = `
     position: relative !important;
   }
   
-  /* Specific targeting for your header structure */
   header.header a:focus,
   header.header a.nav-link:focus,
   header.header a.text-white:focus,
@@ -38,7 +34,6 @@ const focusStyles = `
     position: relative !important;
   }
   
-  /* For navbar component if used */
   nav.navbar a:focus,
   nav.navbar button:focus,
   nav.navbar .nav-link:focus,

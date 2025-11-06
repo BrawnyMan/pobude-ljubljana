@@ -36,7 +36,6 @@ Seznam pobud za oceno:
 
 Vrni samo JSON array z id in nujnost za vsako pobudo. Nujnost oceni glede na resnost problema, vpliv na prebivalce in potrebo po hitri rešitvi."""
 
-
     try:    
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",

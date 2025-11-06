@@ -212,7 +212,6 @@ const StatisticsPage: React.FC = () => {
     <div className="container mt-4">
       <h1 className="mb-4">Statistika pobud</h1>
       
-      {/* Summary Cards */}
       <div className="row mb-4">
         <div className="col-md-3">
           <div className="card text-center">
@@ -248,7 +247,6 @@ const StatisticsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Problematic Categories Analysis */}
       <div className="row mb-4">
         <div className="col-md-6">
           <div className="card">
@@ -292,7 +290,6 @@ const StatisticsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Charts */}
       <div className="row mb-4">
         <div className="col-md-6">
           <div className="card">
@@ -339,7 +336,6 @@ const StatisticsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Detailed Tables */}
       <div className="row mb-4">
         <div className="col-md-6">
           <div className="card">
@@ -407,7 +403,6 @@ const StatisticsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Additional Info */}
       {statistics.summary.average_response_time && (
         <div className="row mb-4">
           <div className="col-12">

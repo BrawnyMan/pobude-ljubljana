@@ -8,7 +8,6 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import L from 'leaflet';
 
-
 const mapFocusStyles = `
   .leaflet-container,
   .leaflet-container *,
@@ -29,7 +28,6 @@ const mapFocusStyles = `
   }
 `;
 
-
 if (typeof document !== 'undefined') {
   const styleElement = document.createElement('style');
   styleElement.textContent = mapFocusStyles;
@@ -39,20 +37,16 @@ if (typeof document !== 'undefined') {
   }
 }
 
-
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-
 
 const LJUBLJANA_BOUNDS = new LatLngBounds(
     new LatLng(45.9774, 14.4276), 
     new LatLng(46.1674, 14.6276)  
 );
 
-
 const LJUBLJANA_CENTER: [number, number] = [46.0569, 14.5058];
-
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -60,7 +54,6 @@ L.Icon.Default.mergeOptions({
     iconRetinaUrl: markerIcon2x,
     shadowUrl: markerShadow,
 });
-
 
 const pinIcon = new Icon({
     iconUrl: markerIcon,
@@ -70,7 +63,6 @@ const pinIcon = new Icon({
     shadowUrl: markerShadow,
     shadowSize: [41, 41]
 });
-
 
 const answeredIcon = new L.Icon({
     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
@@ -96,7 +88,6 @@ interface MapViewProps {
     focusLocation?: [number, number] | null;
 }
 
-
 const MapBoundsHandler: React.FC = () => {
     const map = useMap();
 
@@ -113,7 +104,6 @@ const MapBoundsHandler: React.FC = () => {
 
     return null;
 };
-
 
 const MapFocus = ({ focusLocation }: { focusLocation: [number, number] | null }) => {
     const map = useMap();
@@ -185,7 +175,6 @@ const MapView: React.FC<MapViewProps> = ({ isSelectionMode, onLocationSelect, fo
                 <MapEvents />
                 <MapFocus focusLocation={focusLocation || null} />
 
-                {/* Existing initiatives */}
                 <MarkerClusterGroup
                     chunkedLoading
                     maxClusterRadius={50}
@@ -230,7 +219,6 @@ const MapView: React.FC<MapViewProps> = ({ isSelectionMode, onLocationSelect, fo
                     })}
                 </MarkerClusterGroup>
 
-                {/* Show selected location marker in selection mode */}
                 {isSelectionMode && selectedLocation && (
                     <Marker
                         position={selectedLocation}

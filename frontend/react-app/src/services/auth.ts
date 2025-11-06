@@ -1,35 +1,17 @@
-/**
- * Authentication utilities for admin endpoints
- */
-
 const API_BASE_URL = (import.meta as any).env.VITE_API_URL;
 
-/**
- * Get the stored JWT token
- */
 export const getToken = (): string | null => {
   return localStorage.getItem('admin_token');
 };
 
-/**
- * Check if user is authenticated
- */
 export const isAuthenticated = (): boolean => {
   return getToken() !== null;
 };
 
-/**
- * Clear authentication token
- */
 export const clearAuth = (): void => {
   localStorage.removeItem('admin_token');
 };
 
-/**
- * Make an authenticated fetch request
- * Automatically handles token in Authorization header
- * Handles 401/403 by clearing token and redirecting to login
- */
 export const authenticatedFetch = async (
   url: string,
   options: RequestInit = {}
@@ -44,12 +26,10 @@ export const authenticatedFetch = async (
     throw new Error('No authentication token');
   }
 
-  // Merge headers, but don't override Content-Type if it's already set (e.g., for FormData)
   const defaultHeaders: Record<string, string> = {
     'Authorization': `Bearer ${token}`,
   };
   
-  // Only add Content-Type if body is JSON (not FormData)
   if (options.body && typeof options.body === 'string') {
     defaultHeaders['Content-Type'] = 'application/json';
   }
@@ -63,8 +43,7 @@ export const authenticatedFetch = async (
     ...options,
     headers,
   });
-
-  // Handle unauthorized/forbidden responses
+  
   if (response.status === 401 || response.status === 403) {
     clearAuth();
     if (window.location.pathname !== '/login') {

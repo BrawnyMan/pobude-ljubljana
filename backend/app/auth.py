@@ -10,8 +10,7 @@ from .models import LoginRequest
 router = APIRouter()
 security = HTTPBearer()
 
-# JWT Configuration
-SECRET_KEY = "MBzUmxgiq2DuNaQbcuWhBao/M2+dtJoOD/thEhxA6ekDy34/HtcC0bgaqkEDQWKq"  # Change this to a secure random key in production
+SECRET_KEY = "MBzUmxgiq2DuNaQbcuWhBao/M2+dtJoOD/thEhxA6ekDy34/HtcC0bgaqkEDQWKq"  
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_HOURS = 24
 
@@ -63,7 +62,6 @@ def login(request: LoginRequest):
     if not bcrypt.checkpw(request.password.encode(), ADMIN_PASSWORD_HASH):
         return JSONResponse(status_code=401, content={"detail": "Invalid credentials"})
     
-    # Create JWT token
     access_token_expires = timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS)
     access_token = create_access_token(
         data={"sub": request.username}, expires_delta=access_token_expires

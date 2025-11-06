@@ -22,7 +22,6 @@ const HomePage = () => {
     return (
         <div className="container-fluid d-flex flex-column flex-grow-1" style={{ minHeight: 0 }}>
             <div className="row flex-grow-1 min-h-0" style={{ minHeight: 0 }}>
-                {/* Map Section - Left side */}
                 <div className="col-lg-8 p-0 d-flex flex-grow-1" style={{ minHeight: '84vh' }}>
                     <MapView
                         isSelectionMode={true}
@@ -30,7 +29,6 @@ const HomePage = () => {
                     />
                 </div>
                 
-                {/* Form Section - Right side */}
                 <div className="col-lg-4 py-3">
                     <h1 className="visually-hidden">Submit New Initiative</h1>
                     <InitiativeForm 
